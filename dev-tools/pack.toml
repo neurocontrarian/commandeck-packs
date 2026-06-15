@@ -1,0 +1,143 @@
+version = 1
+
+[pack]
+pack_id = "dev-tools"
+name = "Developer Tools"
+pack_ver = "1.0.0"
+os = ""
+category = "Development"
+description = "Git, Python and Node status at a glance. For people who code on the box, not just run a server."
+tags = ["git", "python", "node", "development"]
+
+# ── Linux / macOS (bash) ──────────────────────────────────────────────────
+[[button]]
+id = "dt-l01"
+name = "Git Status"
+command = "git status"
+icon_name = "git"
+color = "#dc8add"
+show_output = true
+tooltip = "Show working tree status (staged, unstaged, untracked files)"
+os = "linux"
+
+[[button]]
+id = "dt-l02"
+name = "Git Log"
+command = "git log --oneline -15"
+icon_name = "clock-history"
+color = "#c061cb"
+show_output = true
+tooltip = "Show the last 15 commits in compact one-line format"
+os = "linux"
+
+[[button]]
+id = "dt-l03"
+name = "Git Diff"
+command = "git diff"
+icon_name = "file-earmark-diff"
+color = "#cdab8f"
+show_output = true
+tooltip = "Show unstaged changes in the current working directory"
+os = "linux"
+
+[[button]]
+id = "dt-l04"
+name = "Python Version"
+command = "python3 --version && pip3 --version"
+icon_name = "filetype-py"
+color = "#f9f06b"
+show_output = true
+tooltip = "Show installed Python 3 and pip versions"
+os = "linux"
+
+[[button]]
+id = "dt-l05"
+name = "Pip Outdated"
+command = "pip3 list --outdated 2>/dev/null | head -20 || echo 'pip3 not found'"
+icon_name = "filetype-py"
+color = "#e5a50a"
+show_output = true
+timeout = 120
+tooltip = "List Python packages that have newer versions available"
+os = "linux"
+
+[[button]]
+id = "dt-l06"
+name = "Node Version"
+command = "node --version && npm --version"
+icon_name = "filetype-js"
+color = "#8ff0a4"
+show_output = true
+tooltip = "Show installed Node.js and npm versions"
+os = "linux"
+
+[[button]]
+id = "dt-l07"
+name = "NPM Outdated"
+command = "npm outdated 2>/dev/null || echo 'npm not found or not in a Node project'"
+icon_name = "filetype-js"
+color = "#57e389"
+show_output = true
+tooltip = "List npm packages with newer versions available (run from a Node project folder)"
+os = "linux"
+
+# ── Windows (PowerShell) ──────────────────────────────────────────────────
+[[button]]
+id = "dt-w01"
+name = "Git Status"
+command = "if (Get-Command git -ErrorAction SilentlyContinue) { git status } else { Write-Output 'Git is not installed. Get it from https://git-scm.com' }"
+icon_name = "git"
+color = "#dc8add"
+show_output = true
+tooltip = "Show working tree status (staged, unstaged, untracked files)"
+os = "windows"
+
+[[button]]
+id = "dt-w02"
+name = "Git Log"
+command = "if (Get-Command git -ErrorAction SilentlyContinue) { git log --oneline -15 } else { Write-Output 'Git is not installed. Get it from https://git-scm.com' }"
+icon_name = "clock-history"
+color = "#c061cb"
+show_output = true
+tooltip = "Show the last 15 commits in compact one-line format"
+os = "windows"
+
+[[button]]
+id = "dt-w03"
+name = "Python Version"
+command = "$p = Get-Command python -ErrorAction SilentlyContinue; if ($p -and $p.Source -notlike '*WindowsApps*') { python --version; python -m pip --version } elseif (Get-Command py -ErrorAction SilentlyContinue) { py --version; py -m pip --version } else { Write-Output 'Python is not installed. Get it from https://python.org' }"
+icon_name = "filetype-py"
+color = "#f9f06b"
+show_output = true
+tooltip = "Show installed Python 3 and pip versions"
+os = "windows"
+
+[[button]]
+id = "dt-w04"
+name = "Node Version"
+command = "if (Get-Command node -ErrorAction SilentlyContinue) { node --version; npm --version } else { Write-Output 'Node.js is not installed. Get it from https://nodejs.org' }"
+icon_name = "filetype-js"
+color = "#8ff0a4"
+show_output = true
+tooltip = "Show installed Node.js and npm versions"
+os = "windows"
+
+[[button]]
+id = "dt-w05"
+name = "Global npm Packages"
+command = "if (Get-Command npm -ErrorAction SilentlyContinue) { npm list -g --depth=0 } else { Write-Output 'npm is not installed. Install Node.js from https://nodejs.org' }"
+icon_name = "filetype-js"
+color = "#57e389"
+show_output = true
+tooltip = "List npm packages installed globally"
+os = "windows"
+
+[[button]]
+id = "dt-w06"
+name = "Editor Processes"
+command = "Get-Process | Where-Object { $_.ProcessName -match 'code|devenv|sublime|idea|pycharm|webstorm|rider|atom|notepad' } | Format-Table ProcessName, Id, @{N='Mem(MB)';E={[math]::Round($_.WS/1MB,1)}} -AutoSize"
+icon_name = "pencil"
+color = "#cdab8f"
+show_output = true
+tooltip = "Show running code editors and IDEs and their memory use"
+os = "windows"

@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "base_url": "https://raw.githubusercontent.com/neurocontrarian/commandeck-packs/main",
+  "packs": [
+    {
+      "pack_id": "dev-tools",
+      "name": "Developer Tools",
+      "description": "Git, Python and Node status at a glance. For people who code on the box, not just run a server.",
+      "os": "",
+      "tags": [
+        "git",
+        "python",
+        "node",
+        "development"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "dev-tools/pack.toml",
+      "sig": "dev-tools/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "home-server-starter",
+      "name": "Home Server Starter",
+      "description": "One-click maintenance for a Docker home server over SSH: containers, services, connectivity. Pairs with the Linux defaults. Point it at your server with the free 14-day trial \u2014 no card.",
+      "os": "linux",
+      "tags": [
+        "docker",
+        "home-server",
+        "jellyfin",
+        "selfhosted",
+        "ssh"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "home-server-starter/pack.toml",
+      "sig": "home-server-starter/pack.sig",
+      "signed": true
+    }
+  ]
+}
