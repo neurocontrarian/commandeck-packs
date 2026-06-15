@@ -1,0 +1,109 @@
+version = 1
+
+[pack]
+pack_id = "home-server-starter"
+name = "Home Server Starter"
+pack_ver = "1.0.0"
+os = "linux"
+category = "Home Server"
+description = "One-click maintenance for a Docker home server over SSH: containers, services, connectivity. Pairs with the Linux defaults. Point it at your server with the free 14-day trial — no card."
+requires = "A Linux server with Docker (and systemd for the service buttons). The EDIT ME buttons use 'jellyfin' as an example — replace it with your container/service name."
+tags = ["docker", "home-server", "jellyfin", "selfhosted", "ssh"]
+
+# ── Docker ────────────────────────────────────────────────────────────────
+[[button]]
+id = "hss-010"
+name = "Running containers"
+command = "docker ps"
+icon_name = "box-seam"
+color = "#99c1f1"
+show_output = true
+tooltip = "List currently running Docker containers"
+
+[[button]]
+id = "hss-011"
+name = "Container resources"
+command = "docker stats --no-stream"
+icon_name = "activity"
+color = "#8ff0a4"
+show_output = true
+tooltip = "Show CPU, memory and network use per container (one snapshot)"
+
+[[button]]
+id = "hss-012"
+name = "Restart a container (EDIT ME)"
+command = "docker restart jellyfin"
+icon_name = "arrow-clockwise"
+color = "#ffbe6f"
+show_output = true
+confirm_before_run = true
+tooltip = "Edit this button: replace jellyfin with your container name"
+
+[[button]]
+id = "hss-013"
+name = "Container logs (EDIT ME)"
+command = "docker logs --tail 50 jellyfin"
+icon_name = "file-text"
+color = "#ffa348"
+show_output = true
+tooltip = "Edit this button: replace jellyfin with your container name"
+
+[[button]]
+id = "hss-014"
+name = "Update the stack"
+command = "docker compose pull && docker compose up -d"
+icon_name = "cloud-download"
+color = "#62a0ea"
+show_output = true
+confirm_before_run = true
+tooltip = "Pull newer images and recreate the containers. Set this button's working directory to your compose folder (where docker-compose.yml lives)."
+
+[[button]]
+id = "hss-015"
+name = "Clean up Docker disk"
+command = "docker system prune -f"
+icon_name = "trash"
+color = "#f66151"
+show_output = true
+confirm_before_run = true
+tooltip = "Remove stopped containers, unused networks and dangling images to reclaim disk space"
+
+# ── Services ──────────────────────────────────────────────────────────────
+[[button]]
+id = "hss-021"
+name = "Service status (EDIT ME)"
+command = "systemctl status jellyfin --no-pager"
+icon_name = "info-circle"
+color = "#dc8add"
+show_output = true
+tooltip = "Edit this button: replace jellyfin with your systemd service name"
+
+[[button]]
+id = "hss-022"
+name = "Restart a service (EDIT ME)"
+command = "sudo systemctl restart jellyfin"
+icon_name = "arrow-clockwise"
+color = "#f8e45c"
+show_output = true
+confirm_before_run = true
+run_as_user = "root"
+tooltip = "Edit this button: replace jellyfin with your systemd service name (needs sudo)"
+
+# ── Connectivity ──────────────────────────────────────────────────────────
+[[button]]
+id = "hss-031"
+name = "Public IP"
+command = "curl -s ifconfig.me"
+icon_name = "broadcast"
+color = "#57e389"
+show_output = true
+tooltip = "Show the server's public IP address (is the VPN/proxy on?)"
+
+[[button]]
+id = "hss-033"
+name = "Internet check"
+command = "ping -c 4 1.1.1.1"
+icon_name = "wifi"
+color = "#62a0ea"
+show_output = true
+tooltip = "Send 4 test packets to a public server to check internet connectivity"
