@@ -30,7 +30,7 @@
         "selfhosted",
         "ssh"
       ],
-      "pack_ver": "1.0.0",
+      "pack_ver": "1.1.0",
       "path": "home-server-starter/pack.toml",
       "sig": "home-server-starter/pack.sig",
       "signed": true

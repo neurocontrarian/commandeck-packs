@@ -1,0 +1,22 @@
+# Copy to commandeck-packs/.github/workflows/validate-pack.yml
+# Validates community pack submissions on every PR that touches submissions/.
+name: Validate pack submission
+
+on:
+  pull_request:
+    paths:
+      - "submissions/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"   # tomllib is stdlib ≥ 3.11
+      - name: Validate submitted pack(s)
+        run: python3 validate_submission.py

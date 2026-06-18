@@ -3,11 +3,11 @@ version = 1
 [pack]
 pack_id = "home-server-starter"
 name = "Home Server Starter"
-pack_ver = "1.0.0"
+pack_ver = "1.1.0"
 os = "linux"
 category = "Home Server"
 description = "One-click maintenance for a Docker home server over SSH: containers, services, connectivity. Pairs with the Linux defaults. Point it at your server with the free 14-day trial — no card."
-requires = "A Linux server with Docker (and systemd for the service buttons). The EDIT ME buttons use 'jellyfin' as an example — replace it with your container/service name."
+requires = "A Linux server with Docker (and systemd for the service buttons). The container/service buttons ask you for the name each time you click them."
 tags = ["docker", "home-server", "jellyfin", "selfhosted", "ssh"]
 
 # ── Docker ────────────────────────────────────────────────────────────────
@@ -31,22 +31,22 @@ tooltip = "Show CPU, memory and network use per container (one snapshot)"
 
 [[button]]
 id = "hss-012"
-name = "Restart a container (EDIT ME)"
-command = "docker restart jellyfin"
+name = "Restart a container"
+command = "docker restart {{container}}"
 icon_name = "arrow-clockwise"
 color = "#ffbe6f"
 show_output = true
 confirm_before_run = true
-tooltip = "Edit this button: replace jellyfin with your container name"
+tooltip = "Asks for a container name, then restarts it"
 
 [[button]]
 id = "hss-013"
-name = "Container logs (EDIT ME)"
-command = "docker logs --tail 50 jellyfin"
+name = "Container logs"
+command = "docker logs --tail 50 {{container}}"
 icon_name = "file-text"
 color = "#ffa348"
 show_output = true
-tooltip = "Edit this button: replace jellyfin with your container name"
+tooltip = "Asks for a container name, shows its last 50 log lines"
 
 [[button]]
 id = "hss-014"
@@ -71,23 +71,23 @@ tooltip = "Remove stopped containers, unused networks and dangling images to rec
 # ── Services ──────────────────────────────────────────────────────────────
 [[button]]
 id = "hss-021"
-name = "Service status (EDIT ME)"
-command = "systemctl status jellyfin --no-pager"
+name = "Service status"
+command = "systemctl status {{service}} --no-pager"
 icon_name = "info-circle"
 color = "#dc8add"
 show_output = true
-tooltip = "Edit this button: replace jellyfin with your systemd service name"
+tooltip = "Asks for a systemd service name, shows its status"
 
 [[button]]
 id = "hss-022"
-name = "Restart a service (EDIT ME)"
-command = "sudo systemctl restart jellyfin"
+name = "Restart a service"
+command = "sudo systemctl restart {{service}}"
 icon_name = "arrow-clockwise"
 color = "#f8e45c"
 show_output = true
 confirm_before_run = true
 run_as_user = "root"
-tooltip = "Edit this button: replace jellyfin with your systemd service name (needs sudo)"
+tooltip = "Asks for a systemd service name, then restarts it (needs sudo)"
 
 # ── Connectivity ──────────────────────────────────────────────────────────
 [[button]]
