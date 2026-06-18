@@ -44,12 +44,16 @@ Notes:
 - Keep stable `id`s (pack + button) constant across versions — that's how an update refreshes a
   button while preserving which machine the user pointed it at.
 - Windows buttons use PowerShell: separate statements with `;` (no `&&`), single quotes only.
-- Avoid `{{ }}` in commands — it's reserved for future pack variables.
+- Use `{{variable}}` placeholders for anything the user should fill in (e.g. `docker restart
+  {{container}}`) — the app prompts for the value at run time. Never hard-code a secret.
 
 ## Contributing a pack
 
-1. Add a `<pack_id>/pack.toml` (folder name = `pack_id`).
-2. Open a pull request. Commandeck signs and indexes merged packs; you don't need the signing key.
-3. Trademark courtesy: name packs *"buttons for X"*, never *"official X"* unless that project says so.
+In the app: select buttons → **Export as pack…** → you get a **`.cdpack`** file. Then open the
+[**📦 Submit a pack**](https://github.com/neurocontrarian/commandeck-packs/issues/new?template=submit-pack.yml)
+issue form and drag-and-drop that file in. A maintainer reviews, signs, and indexes it — you
+don't need the signing key.
+
+Full guide: **[CONTRIBUTING.md](CONTRIBUTING.md)** · 🇫🇷 **[CONTRIBUTING.fr.md](CONTRIBUTING.fr.md)**.
 
 Bug or idea about an existing pack? Open an issue.
