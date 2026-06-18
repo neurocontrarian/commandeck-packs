@@ -21,8 +21,7 @@ que l'app parcourt).
    - GitHub bloque les types de fichiers inconnus : s'il refuse votre `.cdpack`,
      **renommez-le en `.zip`** puis redéposez-le — un `.cdpack` *est* un zip, et le
      mainteneur le renommera à l'inverse.
-   - Un compte GitHub est requis pour ouvrir une issue. C'est volontaire : ça garde le
-     catalogue propre.
+   - Un compte GitHub est requis pour ouvrir une issue.
 3. **Un mainteneur l'examine**, puis le **signe** avec la clé officielle et le publie
    (`<pack-id>/pack.toml` + `pack.sig`, listé dans `index.json`). Une fois fusionné, il
    apparaît dans la galerie de tout le monde avec le badge **✓ Vérifié**.
@@ -33,7 +32,7 @@ soumission est donc toujours un `.cdpack` *non signé* (le bundle ne contient qu
 
 ## Ce qu'un pack valide doit contenir
 
-- `version = 1`, une table `[pack]` avec `pack_id` (minuscules-avec-tirets), `name`, `pack_ver`.
+- Un identifiant (lettres minuscules, chiffres et tirets), un nom et un numéro de version — l'app les remplit pour vous lors de l'export.
 - Au moins un `[[button]]` avec un `name` et une `command`.
 - **Aucun secret.** Ne mettez jamais de mot de passe / clé d'API / jeton dans une
   commande. Utilisez un **`{{variable}}`** (l'app demande la valeur au moment de
@@ -48,18 +47,3 @@ soumission est donc toujours un `.cdpack` *non signé* (le bundle ne contient qu
 - Ajoutez des `tooltip`s pour que chacun comprenne chaque bouton.
 - Préférez des commandes multi-plateformes, ou indiquez l'`os` d'un bouton quand il est spécifique à un OS.
 - Courtoisie de marque : nommez un pack *« buttons for X »*, jamais *« official X »* sauf accord du projet concerné.
-
----
-
-### Pour les mainteneurs
-
-Une soumission arrive sous forme de `.cdpack` joint à une issue `pack-submission`. Pour la publier :
-
-1. Téléchargez le `.cdpack` depuis l'issue (renommez `.zip` → `.cdpack` si le contributeur a dû le faire).
-2. Validez-le : `python3 validate_submission.py chemin/vers/pack.cdpack` (lit le zip directement).
-3. Extrayez `pack.toml` dans `<pack-id>/pack.toml` (le nom du dossier = `pack_id`).
-4. Signez + reconstruisez l'index : `python3 sign_pack.py` (clé privée — voir le dépôt
-   dev `dev/packs/sign_pack.py` et la mémoire de sauvegarde de la clé). Cela écrit
-   `pack.sig` + `index.json`.
-5. Ouvrez une PR (la CI revalide), fusionnez, puis fermez l'issue. Le pack apparaît dans
-   la galerie avec le badge **✓ Vérifié**.
