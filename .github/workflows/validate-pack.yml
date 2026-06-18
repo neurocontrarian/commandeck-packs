@@ -1,5 +1,11 @@
-# Copy to commandeck-packs/.github/workflows/validate-pack.yml
-# Validates community pack submissions on every PR that touches submissions/.
+# Validates anything committed under submissions/ on a PR. Community packs normally arrive
+# via the "Submit a pack" issue form (an attached .cdpack), but if a pack is committed to
+# submissions/ in a PR, this checks its format (valid TOML, required fields, no secrets,
+# no machine binding) before a maintainer signs + publishes it.
+#
+# Published packs (<pack-id>/pack.toml at the repo root) are maintainer-authored and may
+# legitimately use fields the submission rules forbid (e.g. run_as_user), so they are NOT
+# auto-validated here.
 name: Validate pack submission
 
 on:
@@ -19,4 +25,4 @@ jobs:
         with:
           python-version: "3.12"   # tomllib is stdlib ≥ 3.11
       - name: Validate submitted pack(s)
-        run: python3 validate_submission.py
+        run: python3 validate_submission.py   # globs submissions/**/{pack.toml,*.cdpack}

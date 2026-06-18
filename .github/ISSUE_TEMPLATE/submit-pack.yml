@@ -1,0 +1,74 @@
+name: 📦 Submit a pack / Soumettre un pack
+description: Share a button pack for the Commandeck gallery — Partagez un pack de boutons
+title: "[Pack] "
+labels: ["pack-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing a pack! Packs are **free** and community-made.
+        Merci de partager un pack ! Les packs sont **gratuits** et communautaires.
+
+        **In the app:** Select buttons → **Export as pack…** → you get a **`.cdpack`** file.
+        Attach that file below — no GitHub/coding knowledge needed beyond this form.
+
+        **Dans l'app :** sélectionnez des boutons → **Exporter en pack…** → vous obtenez un
+        fichier **`.cdpack`**. Joignez-le ci-dessous.
+
+        📖 Full guide / Guide complet:
+        [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md) ·
+        [CONTRIBUTING.fr.md](../blob/main/CONTRIBUTING.fr.md)
+  - type: input
+    id: pack-name
+    attributes:
+      label: Pack name / Nom du pack
+      description: A short, clear name. / Un nom court et clair.
+      placeholder: e.g. Jellyfin toolkit
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What does it do? / À quoi ça sert ?
+      description: One or two lines. / Une ou deux lignes.
+      placeholder: One-click maintenance for a Jellyfin media server over SSH.
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system / Système d'exploitation
+      description: Which OS are the commands written for? / Pour quel OS sont écrites les commandes ?
+      options:
+        - Cross-platform / Multi-plateforme
+        - Linux
+        - macOS
+        - Windows
+    validations:
+      required: true
+  - type: textarea
+    id: cdpack
+    attributes:
+      label: Your .cdpack file / Votre fichier .cdpack
+      description: |
+        **Drag-and-drop your `.cdpack` file into this box.** GitHub will upload it and insert a link.
+        If GitHub refuses the file, **rename it from `.cdpack` to `.zip`** and drop it again
+        (a `.cdpack` is already a zip — the maintainer renames it back).
+
+        **Glissez-déposez votre fichier `.cdpack` dans cette zone.** Si GitHub le refuse,
+        **renommez-le de `.cdpack` en `.zip`** puis redéposez-le (un `.cdpack` est déjà un zip).
+      placeholder: Drop the file here / Déposez le fichier ici…
+    validations:
+      required: true
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Quick checks / Vérifications rapides
+      description: The maintainer also re-checks these before publishing. / Le mainteneur revérifie aussi avant publication.
+      options:
+        - label: "No secrets — no password, API key or token in any command (I used `{{variable}}` placeholders where needed). / Aucun secret dans les commandes (j'ai utilisé des `{{variable}}` au besoin)."
+          required: true
+        - label: "Each button has a clear name and a helpful tooltip. / Chaque bouton a un nom clair et une infobulle utile."
+          required: true
+        - label: "Trademark courtesy: I named the pack *\"buttons for X\"*, not *\"official X\"*. / Courtoisie de marque : j'ai nommé le pack *\"buttons for X\"*, pas *\"official X\"*."
+          required: false

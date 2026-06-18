@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🐞 Problem with an existing pack / Problème avec un pack existant
+    url: https://github.com/neurocontrarian/commandeck-packs/issues/new
+    about: Open a regular issue describing the pack and the problem. / Ouvrez une issue classique en décrivant le pack et le souci.
+  - name: 💬 Commandeck app help / Aide sur l'app Commandeck
+    url: https://commandeck.app
+    about: Questions about the app itself (not packs). / Questions sur l'app elle-même (pas les packs).
