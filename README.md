@@ -10,9 +10,10 @@ running buttons on a remote machine over SSH is a Pro feature (14-day trial, no 
 
 - `index.json` — the gallery catalogue the app reads (one entry per pack).
 - `<pack_id>/pack.toml` — a pack: its metadata + buttons.
-- `<pack_id>/pack.sig` — a detached Ed25519 signature over `pack.toml`. Packs signed by
-  Commandeck show a **✓ Verified** badge in the app; unsigned/community packs import after a
-  command-preview step (the app always shows you exactly what a button will run).
+- `<pack_id>/pack.sig` — a detached Ed25519 signature over `pack.toml`. **Only packs whose
+  signature verifies can be installed** — they show a **✓ Verified** badge (the app always
+  previews the exact commands first). An unsigned or tampered pack is shown but **can't be
+  installed**, which is why community submissions go through a maintainer who signs them.
 
 ## Pack format (`pack.toml`)
 
