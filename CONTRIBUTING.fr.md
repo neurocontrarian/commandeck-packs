@@ -47,3 +47,13 @@ soumission est donc toujours un `.cdpack` *non signé* (le bundle ne contient qu
 - Ajoutez des `tooltip`s pour que chacun comprenne chaque bouton.
 - Préférez des commandes multi-plateformes, ou indiquez l'`os` d'un bouton quand il est spécifique à un OS.
 - Courtoisie de marque : nommez un pack *« buttons for X »*, jamais *« official X »* sauf accord du projet concerné.
+
+## Licence
+
+En soumettant un pack, vous **versez son contenu dans le domaine public** sous
+[Creative Commons CC0 1.0 Universal](LICENSE) : vous renoncez à tous vos droits d'auteur et
+droits voisins, sans condition. N'importe qui — y compris le mainteneur de Commandeck — peut
+alors utiliser, modifier, redistribuer ou réutiliser votre pack librement, à toute fin. Le
+contenu d'un pack se limite à des noms de boutons, des commandes shell et des métadonnées
+(jamais de secrets) : il n'y a rien de personnel à licencier. Si vous ne pouvez pas faire cette
+renonciation pour un contenu, ne le soumettez pas.

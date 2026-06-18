@@ -41,3 +41,12 @@ is always an *unsigned* `.cdpack` (the bundle holds just `pack.toml`, no `pack.s
 - Add `tooltip`s so people understand each button.
 - Prefer cross-platform commands, or tag a button's `os` when it's OS-specific.
 - Trademark courtesy: name a pack *"buttons for X"*, never *"official X"* unless that project says so.
+
+## License
+
+By submitting a pack you **dedicate its contents to the public domain** under
+[Creative Commons CC0 1.0 Universal](LICENSE): you waive all copyright and related
+rights, with no conditions. Anyone — including the Commandeck maintainer — can then use,
+modify, redistribute or build on your pack freely, for any purpose. Pack contents are only
+button names, shell commands and metadata (never secrets), so there is nothing personal to
+license. If you can't make this dedication for some content, don't submit it.
