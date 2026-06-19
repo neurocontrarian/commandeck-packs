@@ -38,12 +38,11 @@
     {
       "pack_id": "linux-essentials",
       "name": "Linux Essentials",
-      "description": "The built-in system, hardware and network buttons for Linux targets (bash).",
+      "description": "Core system info, logs and maintenance actions.",
       "os": "linux",
       "tags": [
-        "essentials",
         "defaults",
-        "system"
+        "essentials"
       ],
       "pack_ver": "1.0.0",
       "path": "linux-essentials/pack.toml",
@@ -51,14 +50,41 @@
       "signed": true
     },
     {
+      "pack_id": "linux-hardware",
+      "name": "Hardware",
+      "description": "Disk, memory, CPU, GPU and other hardware checks.",
+      "os": "linux",
+      "tags": [
+        "defaults",
+        "hardware"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "linux-hardware/pack.toml",
+      "sig": "linux-hardware/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "linux-network",
+      "name": "Network",
+      "description": "Interfaces, ports and connection diagnostics.",
+      "os": "linux",
+      "tags": [
+        "defaults",
+        "network"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "linux-network/pack.toml",
+      "sig": "linux-network/pack.sig",
+      "signed": true
+    },
+    {
       "pack_id": "macos-essentials",
-      "name": "macOS Essentials",
-      "description": "The built-in system, hardware and network buttons for macOS targets (bash).",
+      "name": "Linux Essentials",
+      "description": "Core system info, logs and maintenance actions.",
       "os": "macos",
       "tags": [
-        "essentials",
         "defaults",
-        "system"
+        "essentials"
       ],
       "pack_ver": "1.0.0",
       "path": "macos-essentials/pack.toml",
@@ -66,18 +92,73 @@
       "signed": true
     },
     {
+      "pack_id": "macos-hardware",
+      "name": "Hardware",
+      "description": "Disk, memory, CPU, GPU and other hardware checks.",
+      "os": "macos",
+      "tags": [
+        "defaults",
+        "hardware"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "macos-hardware/pack.toml",
+      "sig": "macos-hardware/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "macos-network",
+      "name": "Network",
+      "description": "Interfaces, ports and connection diagnostics.",
+      "os": "macos",
+      "tags": [
+        "defaults",
+        "network"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "macos-network/pack.toml",
+      "sig": "macos-network/pack.sig",
+      "signed": true
+    },
+    {
       "pack_id": "windows-essentials",
       "name": "Windows Essentials",
-      "description": "The built-in system, hardware and network buttons for Windows targets (PowerShell).",
+      "description": "Core system info, logs and maintenance actions.",
       "os": "windows",
       "tags": [
-        "essentials",
         "defaults",
-        "system"
+        "essentials"
       ],
       "pack_ver": "1.0.0",
       "path": "windows-essentials/pack.toml",
       "sig": "windows-essentials/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "windows-hardware",
+      "name": "Hardware",
+      "description": "Disk, memory, CPU, GPU and other hardware checks.",
+      "os": "windows",
+      "tags": [
+        "defaults",
+        "hardware"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "windows-hardware/pack.toml",
+      "sig": "windows-hardware/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "windows-network",
+      "name": "Network",
+      "description": "Interfaces, ports and connection diagnostics.",
+      "os": "windows",
+      "tags": [
+        "defaults",
+        "network"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "windows-network/pack.toml",
+      "sig": "windows-network/pack.sig",
       "signed": true
     }
   ]
