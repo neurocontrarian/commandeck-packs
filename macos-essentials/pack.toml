@@ -1,0 +1,336 @@
+version = 1
+
+[pack]
+pack_id = "macos-essentials"
+name = "macOS Essentials"
+pack_ver = "1.0.0"
+os = "macos"
+category = ""
+description = "The built-in system, hardware and network buttons for macOS targets (bash)."
+tags = [
+    "essentials",
+    "defaults",
+    "system",
+]
+
+[[button]]
+id = "disk-usage"
+name = "Disk Usage"
+command = "df -h"
+icon_name = "hdd"
+color = "#99c1f1"
+tooltip = "Show disk space usage for all mounted filesystems"
+show_output = true
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "memory-usage"
+name = "Memory Usage"
+command = "free -h"
+icon_name = "memory"
+color = "#8ff0a4"
+tooltip = "Show total, used and free RAM and swap memory"
+show_output = true
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "cpu-load"
+name = "CPU Load"
+command = "uptime && echo && top -bn1 | head -15"
+icon_name = "cpu"
+color = "#ffbe6f"
+tooltip = "Show system uptime, load averages and top CPU processes"
+show_output = true
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "temperature"
+name = "Temperature"
+command = "sensors 2>/dev/null || echo 'lm-sensors is not installed.\nTo install: sudo apt install lm-sensors && sudo sensors-detect'"
+icon_name = "thermometer-half"
+color = "#ff7800"
+tooltip = "Show CPU and GPU temperatures (requires lm-sensors)"
+show_output = true
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "running-processes"
+name = "Running Processes"
+command = "ps aux --sort=-%cpu | head -20"
+icon_name = "activity"
+color = "#dc8add"
+tooltip = "List top 20 processes sorted by CPU usage"
+show_output = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "network-interfaces"
+name = "Network Interfaces"
+command = "ip addr"
+icon_name = "ethernet"
+color = "#62a0ea"
+tooltip = "Show all network interfaces and their IP addresses"
+show_output = true
+category = "Network"
+os = "macos"
+
+[[button]]
+id = "active-connections"
+name = "Active Connections"
+command = "ss -tp state established"
+icon_name = "plug"
+color = "#57e389"
+tooltip = "Show all active TCP connections and the processes using them"
+show_output = true
+category = "Network"
+os = "macos"
+
+[[button]]
+id = "open-ports"
+name = "Open Ports"
+command = "ss -tulpn"
+icon_name = "broadcast"
+color = "#57e389"
+tooltip = "List all open TCP/UDP ports and the processes using them"
+show_output = true
+category = "Network"
+os = "macos"
+
+[[button]]
+id = "block-devices"
+name = "Block Devices"
+command = "lsblk"
+icon_name = "stack"
+color = "#cdab8f"
+tooltip = "List all block devices (disks, partitions, loop devices)"
+show_output = true
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "largest-directories"
+name = "Largest Directories"
+command = "du -shx /* 2>/dev/null | sort -rh | head -15"
+icon_name = "folder2"
+color = "#e5a50a"
+tooltip = "Show the 15 largest top-level directories by disk usage"
+show_output = true
+timeout = 120
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "nvidia-gpu"
+name = "NVIDIA GPU"
+command = "nvidia-smi 2>/dev/null || echo 'nvidia-smi not found. Install the NVIDIA proprietary driver.'"
+icon_name = "pc-display"
+color = "#76b900"
+tooltip = "Show NVIDIA GPU activity, memory and processes (requires nvidia-smi)"
+show_output = true
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "amd-gpu"
+name = "AMD GPU"
+command = "echo \"=== AMD GPU ===\"; lspci 2>/dev/null | grep -iE \"vga|3d|display\" | grep -iE \"amd|radeon\" || echo \"(no AMD GPU detected via lspci)\"; echo; echo \"=== Activity ===\"; found=0; for f in /sys/class/drm/card*/device/gpu_busy_percent; do [ -f \"$f\" ] && echo \"$(echo $f | awk -F/ '{print $5}'): $(cat $f)%\" && found=1; done; [ \"$found\" = \"0\" ] && echo \"(activity counters not exposed by driver)\"; echo; echo \"=== Temperature & power ===\"; sensors 2>/dev/null | awk '/amdgpu/{p=1} p; /^$/{p=0}' || echo \"(install lm-sensors for temperature: sudo apt install lm-sensors)\""
+icon_name = "pc-display-horizontal"
+color = "#ed1c24"
+tooltip = "Show AMD GPU model, activity (sysfs) and temperature (sensors) — no extra packages required"
+show_output = true
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "ncdu"
+name = "NCDU"
+command = "if command -v ncdu >/dev/null; then ncdu /; else echo \"ncdu is not installed.\"; if command -v apt-get >/dev/null; then PM=\"sudo apt-get install -y ncdu\"; elif command -v dnf >/dev/null; then PM=\"sudo dnf install -y ncdu\"; elif command -v pacman >/dev/null; then PM=\"sudo pacman -S --noconfirm ncdu\"; elif command -v zypper >/dev/null; then PM=\"sudo zypper install -y ncdu\"; elif command -v apk >/dev/null; then PM=\"sudo apk add ncdu\"; else PM=\"\"; fi; if [ -n \"$PM\" ]; then read -rp \"Install ncdu now? [y/N] \" a; case \"$a\" in [yY]*) eval \"$PM\" && ncdu /;; *) echo \"Skipped.\";; esac; else echo \"Please install ncdu with your package manager.\"; fi; fi"
+icon_name = "hdd"
+color = "#3584e4"
+tooltip = "Interactive disk usage analyzer (requires ncdu)"
+execution_mode = "terminal"
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "btop"
+name = "btop"
+command = "if command -v btop >/dev/null; then btop; else echo \"btop is not installed.\"; if command -v apt-get >/dev/null; then PM=\"sudo apt-get install -y btop\"; elif command -v dnf >/dev/null; then PM=\"sudo dnf install -y btop\"; elif command -v pacman >/dev/null; then PM=\"sudo pacman -S --noconfirm btop\"; elif command -v zypper >/dev/null; then PM=\"sudo zypper install -y btop\"; elif command -v apk >/dev/null; then PM=\"sudo apk add btop\"; else PM=\"\"; fi; if [ -n \"$PM\" ]; then read -rp \"Install btop now? [y/N] \" a; case \"$a\" in [yY]*) eval \"$PM\" && btop;; *) echo \"Skipped.\";; esac; else echo \"Please install btop with your package manager.\"; fi; fi"
+icon_name = "activity"
+color = "#5e5c64"
+tooltip = "Interactive resource monitor (requires btop)"
+execution_mode = "terminal"
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "nvidia-settings"
+name = "NVIDIA Settings"
+command = "(nvidia-settings >/dev/null 2>&1 & disown) && echo 'nvidia-settings launched.' || echo 'nvidia-settings not found. Install: sudo apt install nvidia-settings'"
+icon_name = "pc-display"
+color = "#76b900"
+tooltip = "Open the NVIDIA control panel to tune power limit, fan curves, clocks, etc."
+show_output = true
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "hardware-info"
+name = "Hardware Info"
+command = "if command -v inxi >/dev/null 2>&1; then   inxi -Fxz; else   echo \"Tip: install inxi for a one-shot report — sudo apt install inxi\"; echo;   echo \"=== CPU ===\"; lscpu | head -20; echo;   echo \"=== Memory ===\"; free -h; echo;   echo \"=== Block devices ===\"; lsblk; echo;   echo \"=== PCI devices ===\"; lspci | grep -iE \"vga|3d|audio|network|ethernet\"; echo;   echo \"=== Motherboard / BIOS ===\";   (sudo -n dmidecode -t baseboard -t bios 2>/dev/null    || cat /sys/devices/virtual/dmi/id/board_{vendor,name,version} 2>/dev/null); fi"
+icon_name = "cpu"
+color = "#3584e4"
+tooltip = "Show CPU, memory, motherboard, GPU, network and storage in one report (uses inxi if installed)"
+show_output = true
+timeout = 60
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "system-info"
+name = "System Info"
+command = "uname -a && echo && lsb_release -a 2>/dev/null || cat /etc/os-release"
+icon_name = "info-circle"
+color = "#f9f06b"
+tooltip = "Show kernel version and Linux distribution information"
+show_output = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "logged-in-users"
+name = "Logged-in Users"
+command = "w"
+icon_name = "people"
+color = "#c061cb"
+tooltip = "Show who is logged in and what they are doing"
+show_output = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "last-logins"
+name = "Last Logins"
+command = "last -n 20 2>/dev/null || journalctl --no-pager -n 50 _COMM=systemd-logind 2>/dev/null || echo 'No login history available (install the util-linux-extra or wtmpdb package for last).'"
+icon_name = "person-check"
+color = "#9141ac"
+tooltip = "Show recent login/session activity (last, or the systemd journal)"
+show_output = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "failed-services"
+name = "Failed Services"
+command = "systemctl --failed"
+icon_name = "exclamation-triangle"
+color = "#f66151"
+tooltip = "List all systemd services that have failed — useful for diagnosing broken features"
+show_output = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "system-journal"
+name = "System Journal"
+command = "journalctl -n 50 --no-pager"
+icon_name = "journal-text"
+color = "#ffa348"
+tooltip = "Show the last 50 lines of the system journal (all services, cross-distro)"
+show_output = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "kernel-messages"
+name = "Kernel Messages"
+command = "journalctl -k -n 30 --no-pager 2>/dev/null || dmesg 2>/dev/null | tail -30 || echo 'Kernel log needs elevated privileges (try sudo, or add your user to the systemd-journal group).'"
+icon_name = "cpu"
+color = "#ffa348"
+tooltip = "Show the last 30 kernel ring buffer messages (hardware, boot events)"
+show_output = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "clear-trash"
+name = "Clear Trash"
+command = "rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/* 2>/dev/null && echo 'Trash cleared.'"
+icon_name = "trash"
+color = "#865e3c"
+tooltip = "Permanently delete all files in the Trash"
+confirm_before_run = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "system-update"
+name = "System Update"
+command = "bash -c 'if command -v apt >/dev/null 2>&1; then sudo apt update && sudo apt upgrade -y; elif command -v dnf >/dev/null 2>&1; then sudo dnf upgrade -y; elif command -v pacman >/dev/null 2>&1; then sudo pacman -Syu --noconfirm; else echo \"Unknown package manager\"; fi'"
+icon_name = "cloud-download"
+color = "#62a0ea"
+tooltip = "Refresh package lists and upgrade all installed packages (apt / dnf / pacman)"
+show_output = true
+confirm_before_run = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "reboot"
+name = "Reboot"
+command = "systemctl reboot"
+icon_name = "arrow-clockwise"
+color = "#f8e45c"
+tooltip = "Reboot the system immediately"
+confirm_before_run = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "shutdown"
+name = "Shutdown"
+command = "systemctl poweroff"
+icon_name = "power"
+color = "#f66151"
+tooltip = "Power off the system immediately"
+confirm_before_run = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "disk-io"
+name = "Disk I/O"
+command = "iostat -x 1 3 2>/dev/null || vmstat -d 1 3 2>/dev/null || cat /proc/diskstats"
+icon_name = "hdd"
+color = "#cdab8f"
+tooltip = "Show disk I/O statistics — uses iostat, vmstat or /proc/diskstats (whichever is available)"
+show_output = true
+category = "Hardware"
+os = "macos"
+
+[[button]]
+id = "tail-syslog"
+name = "Tail Syslog"
+command = "tail -n 50 /var/log/syslog 2>/dev/null || journalctl -n 50 --no-pager"
+icon_name = "file-text"
+color = "#ffa348"
+tooltip = "Show the last 50 lines of the system log (syslog or journald)"
+show_output = true
+category = "Linux Essentials"
+os = "macos"
+
+[[button]]
+id = "listening-services"
+name = "Listening Services"
+command = "ss -tlnp"
+icon_name = "broadcast"
+color = "#57e389"
+tooltip = "List all services listening on TCP ports"
+show_output = true
+category = "Network"
+os = "macos"

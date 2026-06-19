@@ -34,6 +34,51 @@
       "path": "home-server-starter/pack.toml",
       "sig": "home-server-starter/pack.sig",
       "signed": true
+    },
+    {
+      "pack_id": "linux-essentials",
+      "name": "Linux Essentials",
+      "description": "The built-in system, hardware and network buttons for Linux targets (bash).",
+      "os": "linux",
+      "tags": [
+        "essentials",
+        "defaults",
+        "system"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "linux-essentials/pack.toml",
+      "sig": "linux-essentials/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "macos-essentials",
+      "name": "macOS Essentials",
+      "description": "The built-in system, hardware and network buttons for macOS targets (bash).",
+      "os": "macos",
+      "tags": [
+        "essentials",
+        "defaults",
+        "system"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "macos-essentials/pack.toml",
+      "sig": "macos-essentials/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "windows-essentials",
+      "name": "Windows Essentials",
+      "description": "The built-in system, hardware and network buttons for Windows targets (PowerShell).",
+      "os": "windows",
+      "tags": [
+        "essentials",
+        "defaults",
+        "system"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "windows-essentials/pack.toml",
+      "sig": "windows-essentials/pack.sig",
+      "signed": true
     }
   ]
 }
