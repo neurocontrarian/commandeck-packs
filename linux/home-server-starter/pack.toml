@@ -6,7 +6,7 @@ name = "Home Server Starter"
 pack_ver = "1.2.0"
 os = "linux"
 category = "Home Server"
-description = "One-click maintenance for a Docker home server over SSH: containers, services, connectivity. Pairs with the Linux defaults. Point it at your server with the free 14-day trial — no card."
+description = "One-click maintenance for a Docker home server over SSH: containers, services, connectivity. Pairs with the Linux defaults."
 requires = "A Linux server with Docker (and systemd for the service buttons). The container/service buttons ask you for the name each time you click them."
 tags = ["docker", "home-server", "jellyfin", "selfhosted", "ssh"]
 
