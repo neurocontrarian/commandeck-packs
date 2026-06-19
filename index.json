@@ -3,10 +3,10 @@
   "base_url": "https://raw.githubusercontent.com/neurocontrarian/commandeck-packs/main",
   "packs": [
     {
-      "pack_id": "dev-tools",
+      "pack_id": "linux-dev-tools",
       "name": "Developer Tools",
       "description": "Git, Python and Node status at a glance. For people who code on the box, not just run a server.",
-      "os": "",
+      "os": "linux",
       "tags": [
         "git",
         "python",
@@ -14,25 +14,8 @@
         "development"
       ],
       "pack_ver": "1.0.0",
-      "path": "cross-platform/dev-tools/pack.toml",
-      "sig": "cross-platform/dev-tools/pack.sig",
-      "signed": true
-    },
-    {
-      "pack_id": "home-server-starter",
-      "name": "Home Server Starter",
-      "description": "One-click maintenance for a Docker home server over SSH: containers, services, connectivity. Pairs with the Linux defaults. Point it at your server with the free 14-day trial \u2014 no card.",
-      "os": "linux",
-      "tags": [
-        "docker",
-        "home-server",
-        "jellyfin",
-        "selfhosted",
-        "ssh"
-      ],
-      "pack_ver": "1.2.0",
-      "path": "cross-platform/home-server-starter/pack.toml",
-      "sig": "cross-platform/home-server-starter/pack.sig",
+      "path": "linux/dev-tools/pack.toml",
+      "sig": "linux/dev-tools/pack.sig",
       "signed": true
     },
     {
@@ -64,6 +47,23 @@
       "signed": true
     },
     {
+      "pack_id": "home-server-starter",
+      "name": "Home Server Starter",
+      "description": "One-click maintenance for a Docker home server over SSH: containers, services, connectivity. Pairs with the Linux defaults. Point it at your server with the free 14-day trial \u2014 no card.",
+      "os": "linux",
+      "tags": [
+        "docker",
+        "home-server",
+        "jellyfin",
+        "selfhosted",
+        "ssh"
+      ],
+      "pack_ver": "1.2.0",
+      "path": "linux/home-server-starter/pack.toml",
+      "sig": "linux/home-server-starter/pack.sig",
+      "signed": true
+    },
+    {
       "pack_id": "linux-network",
       "name": "Network",
       "description": "Interfaces, ports and connection diagnostics.",
@@ -75,6 +75,22 @@
       "pack_ver": "1.0.0",
       "path": "linux/network/pack.toml",
       "sig": "linux/network/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "macos-dev-tools",
+      "name": "Developer Tools",
+      "description": "Git, Python and Node status at a glance. For people who code on the box, not just run a server.",
+      "os": "macos",
+      "tags": [
+        "git",
+        "python",
+        "node",
+        "development"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "macos/dev-tools/pack.toml",
+      "sig": "macos/dev-tools/pack.sig",
       "signed": true
     },
     {
@@ -117,6 +133,22 @@
       "pack_ver": "1.0.0",
       "path": "macos/network/pack.toml",
       "sig": "macos/network/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "windows-dev-tools",
+      "name": "Developer Tools",
+      "description": "Git, Python and Node status at a glance. For people who code on the box, not just run a server.",
+      "os": "windows",
+      "tags": [
+        "git",
+        "python",
+        "node",
+        "development"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "windows/dev-tools/pack.toml",
+      "sig": "windows/dev-tools/pack.sig",
       "signed": true
     },
     {

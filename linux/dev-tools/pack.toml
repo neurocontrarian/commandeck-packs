@@ -1,0 +1,86 @@
+version = 1
+
+[pack]
+pack_id = "linux-dev-tools"
+name = "Developer Tools"
+pack_ver = "1.0.0"
+os = "linux"
+category = "Development"
+description = "Git, Python and Node status at a glance. For people who code on the box, not just run a server."
+tags = [
+    "git",
+    "python",
+    "node",
+    "development",
+]
+
+[[button]]
+id = "dt-l01"
+name = "Git Status"
+command = "git status"
+icon_name = "git"
+color = "#dc8add"
+show_output = true
+tooltip = "Show working tree status (staged, unstaged, untracked files)"
+os = "linux"
+
+[[button]]
+id = "dt-l02"
+name = "Git Log"
+command = "git log --oneline -15"
+icon_name = "clock-history"
+color = "#c061cb"
+show_output = true
+tooltip = "Show the last 15 commits in compact one-line format"
+os = "linux"
+
+[[button]]
+id = "dt-l03"
+name = "Git Diff"
+command = "git diff"
+icon_name = "file-earmark-diff"
+color = "#cdab8f"
+show_output = true
+tooltip = "Show unstaged changes in the current working directory"
+os = "linux"
+
+[[button]]
+id = "dt-l04"
+name = "Python Version"
+command = "python3 --version && pip3 --version"
+icon_name = "filetype-py"
+color = "#f9f06b"
+show_output = true
+tooltip = "Show installed Python 3 and pip versions"
+os = "linux"
+
+[[button]]
+id = "dt-l05"
+name = "Pip Outdated"
+command = "pip3 list --outdated 2>/dev/null | head -20 || echo 'pip3 not found'"
+icon_name = "filetype-py"
+color = "#e5a50a"
+show_output = true
+timeout = 120
+tooltip = "List Python packages that have newer versions available"
+os = "linux"
+
+[[button]]
+id = "dt-l06"
+name = "Node Version"
+command = "node --version && npm --version"
+icon_name = "filetype-js"
+color = "#8ff0a4"
+show_output = true
+tooltip = "Show installed Node.js and npm versions"
+os = "linux"
+
+[[button]]
+id = "dt-l07"
+name = "NPM Outdated"
+command = "npm outdated 2>/dev/null || echo 'npm not found or not in a Node project'"
+icon_name = "filetype-js"
+color = "#57e389"
+show_output = true
+tooltip = "List npm packages with newer versions available (run from a Node project folder)"
+os = "linux"
