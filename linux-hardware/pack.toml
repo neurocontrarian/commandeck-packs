@@ -1,0 +1,158 @@
+version = 1
+
+[pack]
+pack_id = "linux-hardware"
+name = "Hardware"
+pack_ver = "1.0.0"
+os = "linux"
+category = "Hardware"
+description = "Disk, memory, CPU, GPU and other hardware checks."
+tags = [
+    "defaults",
+    "hardware",
+]
+
+[[button]]
+id = "disk-usage"
+name = "Disk Usage"
+command = "df -h"
+icon_name = "hdd"
+color = "#99c1f1"
+tooltip = "Show disk space usage for all mounted filesystems"
+show_output = true
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "memory-usage"
+name = "Memory Usage"
+command = "free -h"
+icon_name = "memory"
+color = "#8ff0a4"
+tooltip = "Show total, used and free RAM and swap memory"
+show_output = true
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "cpu-load"
+name = "CPU Load"
+command = "uptime && echo && top -bn1 | head -15"
+icon_name = "cpu"
+color = "#ffbe6f"
+tooltip = "Show system uptime, load averages and top CPU processes"
+show_output = true
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "temperature"
+name = "Temperature"
+command = "sensors 2>/dev/null || echo 'lm-sensors is not installed.\nTo install: sudo apt install lm-sensors && sudo sensors-detect'"
+icon_name = "thermometer-half"
+color = "#ff7800"
+tooltip = "Show CPU and GPU temperatures (requires lm-sensors)"
+show_output = true
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "block-devices"
+name = "Block Devices"
+command = "lsblk"
+icon_name = "stack"
+color = "#cdab8f"
+tooltip = "List all block devices (disks, partitions, loop devices)"
+show_output = true
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "largest-directories"
+name = "Largest Directories"
+command = "du -shx /* 2>/dev/null | sort -rh | head -15"
+icon_name = "folder2"
+color = "#e5a50a"
+tooltip = "Show the 15 largest top-level directories by disk usage"
+show_output = true
+timeout = 120
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "nvidia-gpu"
+name = "NVIDIA GPU"
+command = "nvidia-smi 2>/dev/null || echo 'nvidia-smi not found. Install the NVIDIA proprietary driver.'"
+icon_name = "pc-display"
+color = "#76b900"
+tooltip = "Show NVIDIA GPU activity, memory and processes (requires nvidia-smi)"
+show_output = true
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "amd-gpu"
+name = "AMD GPU"
+command = "echo \"=== AMD GPU ===\"; lspci 2>/dev/null | grep -iE \"vga|3d|display\" | grep -iE \"amd|radeon\" || echo \"(no AMD GPU detected via lspci)\"; echo; echo \"=== Activity ===\"; found=0; for f in /sys/class/drm/card*/device/gpu_busy_percent; do [ -f \"$f\" ] && echo \"$(echo $f | awk -F/ '{print $5}'): $(cat $f)%\" && found=1; done; [ \"$found\" = \"0\" ] && echo \"(activity counters not exposed by driver)\"; echo; echo \"=== Temperature & power ===\"; sensors 2>/dev/null | awk '/amdgpu/{p=1} p; /^$/{p=0}' || echo \"(install lm-sensors for temperature: sudo apt install lm-sensors)\""
+icon_name = "pc-display-horizontal"
+color = "#ed1c24"
+tooltip = "Show AMD GPU model, activity (sysfs) and temperature (sensors) — no extra packages required"
+show_output = true
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "ncdu"
+name = "NCDU"
+command = "if command -v ncdu >/dev/null; then ncdu /; else echo \"ncdu is not installed.\"; if command -v apt-get >/dev/null; then PM=\"sudo apt-get install -y ncdu\"; elif command -v dnf >/dev/null; then PM=\"sudo dnf install -y ncdu\"; elif command -v pacman >/dev/null; then PM=\"sudo pacman -S --noconfirm ncdu\"; elif command -v zypper >/dev/null; then PM=\"sudo zypper install -y ncdu\"; elif command -v apk >/dev/null; then PM=\"sudo apk add ncdu\"; else PM=\"\"; fi; if [ -n \"$PM\" ]; then read -rp \"Install ncdu now? [y/N] \" a; case \"$a\" in [yY]*) eval \"$PM\" && ncdu /;; *) echo \"Skipped.\";; esac; else echo \"Please install ncdu with your package manager.\"; fi; fi"
+icon_name = "hdd"
+color = "#3584e4"
+tooltip = "Interactive disk usage analyzer (requires ncdu)"
+execution_mode = "terminal"
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "btop"
+name = "btop"
+command = "if command -v btop >/dev/null; then btop; else echo \"btop is not installed.\"; if command -v apt-get >/dev/null; then PM=\"sudo apt-get install -y btop\"; elif command -v dnf >/dev/null; then PM=\"sudo dnf install -y btop\"; elif command -v pacman >/dev/null; then PM=\"sudo pacman -S --noconfirm btop\"; elif command -v zypper >/dev/null; then PM=\"sudo zypper install -y btop\"; elif command -v apk >/dev/null; then PM=\"sudo apk add btop\"; else PM=\"\"; fi; if [ -n \"$PM\" ]; then read -rp \"Install btop now? [y/N] \" a; case \"$a\" in [yY]*) eval \"$PM\" && btop;; *) echo \"Skipped.\";; esac; else echo \"Please install btop with your package manager.\"; fi; fi"
+icon_name = "activity"
+color = "#5e5c64"
+tooltip = "Interactive resource monitor (requires btop)"
+execution_mode = "terminal"
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "nvidia-settings"
+name = "NVIDIA Settings"
+command = "(nvidia-settings >/dev/null 2>&1 & disown) && echo 'nvidia-settings launched.' || echo 'nvidia-settings not found. Install: sudo apt install nvidia-settings'"
+icon_name = "pc-display"
+color = "#76b900"
+tooltip = "Open the NVIDIA control panel to tune power limit, fan curves, clocks, etc."
+show_output = true
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "hardware-info"
+name = "Hardware Info"
+command = "if command -v inxi >/dev/null 2>&1; then   inxi -Fxz; else   echo \"Tip: install inxi for a one-shot report — sudo apt install inxi\"; echo;   echo \"=== CPU ===\"; lscpu | head -20; echo;   echo \"=== Memory ===\"; free -h; echo;   echo \"=== Block devices ===\"; lsblk; echo;   echo \"=== PCI devices ===\"; lspci | grep -iE \"vga|3d|audio|network|ethernet\"; echo;   echo \"=== Motherboard / BIOS ===\";   (sudo -n dmidecode -t baseboard -t bios 2>/dev/null    || cat /sys/devices/virtual/dmi/id/board_{vendor,name,version} 2>/dev/null); fi"
+icon_name = "cpu"
+color = "#3584e4"
+tooltip = "Show CPU, memory, motherboard, GPU, network and storage in one report (uses inxi if installed)"
+show_output = true
+timeout = 60
+category = "Hardware"
+os = "linux"
+
+[[button]]
+id = "disk-io"
+name = "Disk I/O"
+command = "iostat -x 1 3 2>/dev/null || vmstat -d 1 3 2>/dev/null || cat /proc/diskstats"
+icon_name = "hdd"
+color = "#cdab8f"
+tooltip = "Show disk I/O statistics — uses iostat, vmstat or /proc/diskstats (whichever is available)"
+show_output = true
+category = "Hardware"
+os = "linux"

@@ -1,0 +1,46 @@
+version = 1
+
+[pack]
+pack_id = "windows-hardware"
+name = "Hardware"
+pack_ver = "1.0.0"
+os = "windows"
+category = "Hardware"
+description = "Disk, memory, CPU, GPU and other hardware checks."
+tags = [
+    "defaults",
+    "hardware",
+]
+
+[[button]]
+id = "disk-usage"
+name = "Disk Usage"
+command = "Get-PSDrive -PSProvider FileSystem"
+icon_name = "hdd"
+color = "#99c1f1"
+tooltip = "Show disk space usage for all mounted filesystems"
+show_output = true
+category = "Hardware"
+os = "windows"
+
+[[button]]
+id = "memory-usage"
+name = "Memory Usage"
+command = "Get-CimInstance Win32_OperatingSystem | Select-Object @{N='TotalRAM(GB)';E={[math]::Round($_.TotalVisibleMemorySize/1MB,2)}}, @{N='FreeRAM(GB)';E={[math]::Round($_.FreePhysicalMemory/1MB,2)}} | Format-List"
+icon_name = "memory"
+color = "#8ff0a4"
+tooltip = "Show total, used and free RAM and swap memory"
+show_output = true
+category = "Hardware"
+os = "windows"
+
+[[button]]
+id = "cpu-load"
+name = "CPU Load"
+command = "Get-Process | Sort-Object CPU -Descending | Select-Object -First 15 Name, Id, CPU, @{N='Mem(MB)';E={[math]::Round($_.WS/1MB,1)}} | Format-Table -AutoSize"
+icon_name = "cpu"
+color = "#ffbe6f"
+tooltip = "List the 15 processes using the most CPU"
+show_output = true
+category = "Hardware"
+os = "windows"
