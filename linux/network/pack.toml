@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "linux-network"
 name = "Network"
-pack_ver = "1.0.0"
+pack_ver = "1.1.0"
 os = "linux"
 category = "Network"
 description = "Interfaces, ports and connection diagnostics."

@@ -2,10 +2,10 @@ version = 1
 
 [pack]
 pack_id = "macos-essentials"
-name = "Linux Essentials"
-pack_ver = "1.0.0"
+name = "macOS Essentials"
+pack_ver = "1.1.0"
 os = "macos"
-category = "Linux Essentials"
+category = "macOS Essentials"
 description = "Core system info, logs and maintenance actions."
 tags = [
     "defaults",
@@ -15,23 +15,23 @@ tags = [
 [[button]]
 id = "running-processes"
 name = "Running Processes"
-command = "ps aux --sort=-%cpu | head -20"
+command = "ps aux | head -1; ps aux | tail -n +2 | sort -nrk 3 | head -19"
 icon_name = "activity"
 color = "#dc8add"
 tooltip = "List top 20 processes sorted by CPU usage"
 show_output = true
-category = "Linux Essentials"
+category = "macOS Essentials"
 os = "macos"
 
 [[button]]
 id = "system-info"
 name = "System Info"
-command = "uname -a && echo && lsb_release -a 2>/dev/null || cat /etc/os-release"
+command = "sw_vers && echo && uname -a"
 icon_name = "info-circle"
 color = "#f9f06b"
-tooltip = "Show kernel version and Linux distribution information"
+tooltip = "Show macOS version and kernel information"
 show_output = true
-category = "Linux Essentials"
+category = "macOS Essentials"
 os = "macos"
 
 [[button]]
@@ -42,105 +42,97 @@ icon_name = "people"
 color = "#c061cb"
 tooltip = "Show who is logged in and what they are doing"
 show_output = true
-category = "Linux Essentials"
+category = "macOS Essentials"
 os = "macos"
 
 [[button]]
 id = "last-logins"
 name = "Last Logins"
-command = "last -n 20 2>/dev/null || journalctl --no-pager -n 50 _COMM=systemd-logind 2>/dev/null || echo 'No login history available (install the util-linux-extra or wtmpdb package for last).'"
+command = "last | head -20"
 icon_name = "person-check"
 color = "#9141ac"
-tooltip = "Show recent login/session activity (last, or the systemd journal)"
+tooltip = "Show the 20 most recent logins and reboots"
 show_output = true
-category = "Linux Essentials"
+category = "macOS Essentials"
 os = "macos"
 
 [[button]]
 id = "failed-services"
 name = "Failed Services"
-command = "systemctl --failed"
+command = "launchctl list | awk 'NR==1 || $2+0 != 0'"
 icon_name = "exclamation-triangle"
 color = "#f66151"
-tooltip = "List all systemd services that have failed — useful for diagnosing broken features"
+tooltip = "List launchd services whose last run ended in an error"
 show_output = true
-category = "Linux Essentials"
+category = "macOS Essentials"
 os = "macos"
 
 [[button]]
 id = "system-journal"
-name = "System Journal"
-command = "journalctl -n 50 --no-pager"
+name = "System Log"
+command = "log show --last 5m --style compact 2>/dev/null | tail -n 50"
 icon_name = "journal-text"
 color = "#ffa348"
-tooltip = "Show the last 50 lines of the system journal (all services, cross-distro)"
+tooltip = "Show the last 50 system log messages from the last 5 minutes"
 show_output = true
-category = "Linux Essentials"
+timeout = 60
+category = "macOS Essentials"
 os = "macos"
 
 [[button]]
 id = "kernel-messages"
 name = "Kernel Messages"
-command = "journalctl -k -n 30 --no-pager 2>/dev/null || dmesg 2>/dev/null | tail -30 || echo 'Kernel log needs elevated privileges (try sudo, or add your user to the systemd-journal group).'"
+command = "log show --last 30m --predicate 'process == \"kernel\"' --style compact 2>/dev/null | tail -n 30"
 icon_name = "cpu"
 color = "#ffa348"
-tooltip = "Show the last 30 kernel ring buffer messages (hardware, boot events)"
+tooltip = "Show recent kernel log messages (hardware, drivers)"
 show_output = true
-category = "Linux Essentials"
+timeout = 60
+category = "macOS Essentials"
 os = "macos"
 
 [[button]]
 id = "clear-trash"
 name = "Clear Trash"
-command = "rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/* 2>/dev/null && echo 'Trash cleared.'"
+command = "osascript -e 'tell application \"Finder\" to empty trash' && echo 'Trash emptied.' || echo 'Could not empty the Trash - allow Commandeck to control Finder in System Settings > Privacy & Security > Automation.'"
 icon_name = "trash"
 color = "#865e3c"
 tooltip = "Permanently delete all files in the Trash"
+show_output = true
 confirm_before_run = true
-category = "Linux Essentials"
+category = "macOS Essentials"
 os = "macos"
 
 [[button]]
 id = "system-update"
 name = "System Update"
-command = "bash -c 'if command -v apt >/dev/null 2>&1; then sudo apt update && sudo apt upgrade -y; elif command -v dnf >/dev/null 2>&1; then sudo dnf upgrade -y; elif command -v pacman >/dev/null 2>&1; then sudo pacman -Syu --noconfirm; else echo \"Unknown package manager\"; fi'"
+command = "sudo softwareupdate -i -a"
 icon_name = "cloud-download"
 color = "#62a0ea"
-tooltip = "Refresh package lists and upgrade all installed packages (apt / dnf / pacman)"
-show_output = true
+tooltip = "Check for and install macOS software updates (asks for your password)"
 confirm_before_run = true
-category = "Linux Essentials"
+execution_mode = "terminal"
+category = "macOS Essentials"
 os = "macos"
 
 [[button]]
 id = "reboot"
 name = "Reboot"
-command = "systemctl reboot"
+command = "osascript -e 'tell application \"System Events\" to restart'"
 icon_name = "arrow-clockwise"
 color = "#f8e45c"
 tooltip = "Reboot the system immediately"
 confirm_before_run = true
-category = "Linux Essentials"
+category = "macOS Essentials"
 os = "macos"
 
 [[button]]
 id = "shutdown"
 name = "Shutdown"
-command = "systemctl poweroff"
+command = "osascript -e 'tell application \"System Events\" to shut down'"
 icon_name = "power"
 color = "#f66151"
 tooltip = "Power off the system immediately"
 confirm_before_run = true
-category = "Linux Essentials"
-os = "macos"
-
-[[button]]
-id = "tail-syslog"
-name = "Tail Syslog"
-command = "tail -n 50 /var/log/syslog 2>/dev/null || journalctl -n 50 --no-pager"
-icon_name = "file-text"
-color = "#ffa348"
-tooltip = "Show the last 50 lines of the system log (syslog or journald)"
-show_output = true
-category = "Linux Essentials"
+category = "macOS Essentials"
 os = "macos"
