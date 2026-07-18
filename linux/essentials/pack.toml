@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "linux-essentials"
 name = "Linux Essentials"
-pack_ver = "1.3.0"
+pack_ver = "1.4.0"
 os = "linux"
 category = "Linux Essentials"
 description = "Core system info, logs and maintenance actions."
@@ -48,7 +48,7 @@ os = "linux"
 [[button]]
 id = "last-logins"
 name = "Last Logins"
-command = "last -n 20 2>/dev/null || journalctl --no-pager -n 50 _COMM=systemd-logind 2>/dev/null || echo 'No login history available (install the util-linux-extra or wtmpdb package for last).'"
+command = "if command -v last >/dev/null; then last -n 20; else out=$(journalctl -q --no-pager -n 50 _COMM=systemd-logind 2>/dev/null); if [ -n \"$out\" ]; then echo \"$out\"; else echo 'No login history available (install the util-linux-extra or wtmpdb package for last).'; fi; fi"
 icon_name = "person-check"
 color = "#9141ac"
 tooltip = "Show recent login/session activity (last, or the systemd journal)"
@@ -81,7 +81,7 @@ os = "linux"
 [[button]]
 id = "kernel-messages"
 name = "Kernel Messages"
-command = "journalctl -k -n 30 --no-pager 2>/dev/null || dmesg 2>/dev/null | tail -30 || echo 'Kernel log needs elevated privileges (try sudo, or add your user to the systemd-journal group).'"
+command = "out=$(journalctl -q -k -n 30 --no-pager 2>/dev/null); [ -z \"$out\" ] && out=$(dmesg 2>/dev/null | tail -30); if [ -n \"$out\" ]; then echo \"$out\"; else echo 'Kernel log needs elevated privileges (add your user to the adm group, or run: sudo dmesg).'; fi"
 icon_name = "cpu"
 color = "#ffa348"
 tooltip = "Show the last 30 kernel ring buffer messages (hardware, boot events)"
@@ -107,8 +107,8 @@ command = "bash -c 'if command -v apt >/dev/null 2>&1; then sudo apt update && s
 icon_name = "cloud-download"
 color = "#62a0ea"
 tooltip = "Refresh package lists and upgrade all installed packages (apt / dnf / pacman)"
-show_output = true
 confirm_before_run = true
+execution_mode = "terminal"
 category = "Linux Essentials"
 os = "linux"
 
