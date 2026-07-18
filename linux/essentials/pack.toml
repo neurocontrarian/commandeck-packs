@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "linux-essentials"
 name = "Linux Essentials"
-pack_ver = "1.0.0"
+pack_ver = "1.1.0"
 os = "linux"
 category = "Linux Essentials"
 description = "Core system info, logs and maintenance actions."
