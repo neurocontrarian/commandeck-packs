@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "windows-hardware"
 name = "Hardware"
-pack_ver = "1.1.0"
+pack_ver = "1.2.0"
 os = "windows"
 category = "Hardware"
 description = "Disk, memory, CPU, GPU and other hardware checks."
@@ -41,6 +41,17 @@ command = "Get-Process | Sort-Object CPU -Descending | Select-Object -First 15 N
 icon_name = "cpu"
 color = "#ffbe6f"
 tooltip = "List the 15 processes using the most CPU"
+show_output = true
+category = "Hardware"
+os = "windows"
+
+[[button]]
+id = "battery"
+name = "Battery"
+command = "$b = Get-CimInstance Win32_Battery | Select-Object -First 1; if ($b) { Write-Output ('Charge: ' + $b.EstimatedChargeRemaining + ' %'); $s = (@{1='Discharging';2='On AC power';3='Fully charged';4='Low';5='Critical';6='Charging';7='Charging';8='Charging';9='Charging';11='Partially charged'})[[int]$b.BatteryStatus]; if (-not $s) { $s = 'Unknown' }; Write-Output ('Status: ' + $s) } else { Write-Output 'No battery detected (desktop PC).' }"
+icon_name = "plug"
+color = "#57e389"
+tooltip = "Show battery charge level and power source"
 show_output = true
 category = "Hardware"
 os = "windows"
