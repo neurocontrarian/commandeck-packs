@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "linux-network"
 name = "Network"
-pack_ver = "1.1.0"
+pack_ver = "1.2.0"
 os = "linux"
 category = "Network"
 description = "Interfaces, ports and connection diagnostics."
@@ -52,6 +52,17 @@ command = "ss -tlnp"
 icon_name = "broadcast"
 color = "#57e389"
 tooltip = "List all services listening on TCP ports"
+show_output = true
+category = "Network"
+os = "linux"
+
+[[button]]
+id = "ping"
+name = "Ping"
+command = "ping -c 4 8.8.8.8"
+icon_name = "wifi"
+color = "#62a0ea"
+tooltip = "Send 4 test packets to a public server to check internet connectivity"
 show_output = true
 category = "Network"
 os = "linux"

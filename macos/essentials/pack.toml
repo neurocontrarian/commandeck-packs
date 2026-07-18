@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "macos-essentials"
 name = "macOS Essentials"
-pack_ver = "1.1.0"
+pack_ver = "1.2.0"
 os = "macos"
 category = "macOS Essentials"
 description = "Core system info, logs and maintenance actions."
