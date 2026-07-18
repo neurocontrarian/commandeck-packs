@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "macos-hardware"
 name = "Hardware"
-pack_ver = "1.2.0"
+pack_ver = "1.3.0"
 os = "macos"
 category = "Hardware"
 description = "Disk, memory, CPU, GPU and other hardware checks."
