@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "windows-hardware"
 name = "Hardware"
-pack_ver = "1.5.0"
+pack_ver = "1.6.0"
 os = "windows"
 category = "Hardware"
 description = "Disk, memory, CPU, GPU and other hardware checks."

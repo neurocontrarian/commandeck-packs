@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "macos-network"
 name = "Network"
-pack_ver = "1.5.0"
+pack_ver = "1.6.0"
 os = "macos"
 category = "Network"
 description = "Interfaces, ports and connection diagnostics."
