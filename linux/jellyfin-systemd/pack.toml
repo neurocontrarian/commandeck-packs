@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "jellyfin-systemd"
 name = "Jellyfin (system install)"
-pack_ver = "1.0.3"
+pack_ver = "1.0.4"
 os = "linux"
 category = "Jellyfin"
 description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin installed on the machine itself and managed by systemctl."
@@ -59,11 +59,12 @@ tooltip = "The raw last 60 lines, unfiltered. Use it when the filtered buttons a
 [[button]]
 id = "jfs-060"
 name = "Disk activity"
-command = '''command -v iotop >/dev/null || { echo "iotop is not installed on this server - without it, nothing can tell you which process is hitting the drives."; echo; echo "Click the \"Install iotop\" button once (it asks for confirmation first), then come back here."; exit 0; }; out=$(sudo iotop -bon1) || exit $?; echo "$out" | head -20'''
+command = '''if ! command -v iotop >/dev/null; then echo "iotop is missing on this server - installing it now (one-off, from your distribution's repository)."; if command -v apt-get >/dev/null; then sudo apt-get install -y iotop 2>/dev/null || { sudo apt-get update -qq && sudo apt-get install -y iotop; } || exit $?; elif command -v dnf >/dev/null; then sudo dnf install -y iotop || exit $?; elif command -v pacman >/dev/null; then sudo pacman -S --noconfirm iotop || exit $?; elif command -v zypper >/dev/null; then sudo zypper install -y iotop || exit $?; elif command -v apk >/dev/null; then sudo apk add iotop || exit $?; else echo "Unknown package manager - please install iotop yourself."; exit 0; fi; echo "Installed. Measuring..."; echo; fi; out=$(sudo iotop -bon1) || exit $?; echo "$out" | head -20'''
 icon_name = "hdd"
 color = "#99c1f1"
 show_output = true
-tooltip = "Which process is actually hitting the drives, one measurement (not the interactive full-screen iotop). Needs the iotop tool - a dedicated button installs it."
+timeout = 300
+tooltip = "Which process is actually hitting the drives, one measurement (not the interactive full-screen iotop). Installs the iotop package by itself the first time, without asking."
 
 [[button]]
 id = "jfs-070"
@@ -90,6 +91,7 @@ command = '''out=$(ls -1 /var/lib/jellyfin/plugins 2>/dev/null | grep -v '^confi
 icon_name = "stack"
 color = "#99c1f1"
 show_output = true
+timeout = 300
 tooltip = "When Jellyfin misbehaves for no visible reason, an added plugin is a frequent culprit. Lists the ones you installed yourself - the built-in metadata providers are not shown."
 
 # ── Acting (rare, and in this order) ──────────────────────────────────────
@@ -123,14 +125,3 @@ color = "#f66151"
 show_output = true
 confirm_before_run = true
 tooltip = "Deletes the temporary transcoding files only - never your media, never your settings. Do not click it while someone is watching."
-
-[[button]]
-id = "jfs-130"
-name = "Install iotop"
-command = '''if command -v iotop >/dev/null; then echo "iotop is already installed - nothing to do."; exit 0; fi; echo "Installing iotop from your distribution's repository..."; if command -v apt-get >/dev/null; then sudo apt-get install -y iotop 2>/dev/null || { sudo apt-get update -qq && sudo apt-get install -y iotop; } || exit $?; elif command -v dnf >/dev/null; then sudo dnf install -y iotop || exit $?; elif command -v pacman >/dev/null; then sudo pacman -S --noconfirm iotop || exit $?; elif command -v zypper >/dev/null; then sudo zypper install -y iotop || exit $?; elif command -v apk >/dev/null; then sudo apk add iotop || exit $?; else echo "Unknown package manager - please install iotop yourself."; exit 0; fi; command -v iotop >/dev/null && echo && echo "Done. The \"Disk activity\" button now works."'''
-icon_name = "cloud-download"
-color = "#dc8add"
-show_output = true
-confirm_before_run = true
-timeout = 300
-tooltip = "Adds the small iotop tool to your server (one-off) so the Disk activity button can tell you which process is using the drives. Nothing else is changed."
