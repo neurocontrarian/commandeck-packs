@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "jellyfin-docker"
 name = "Jellyfin (Docker)"
-pack_ver = "1.0.1"
+pack_ver = "1.0.2"
 os = "linux"
 category = "Jellyfin"
 description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin running in a Docker container."
@@ -23,7 +23,7 @@ tooltip = "Shows the container and how long it has been up - or why it stopped (
 [[button]]
 id = "jfd-020"
 name = "Why is Jellyfin busy?"
-command = '''echo "=== Transcoding right now? ==="; tr=$(ps -eo comm,pcpu,etime,args --no-headers | awk '$1=="ffmpeg"' | head -5); [ -n "$tr" ] && echo "$tr" || echo "No, nothing is transcoding."; echo; echo "=== Scanning the library right now? ==="; sc=$(ps -eo comm,pcpu,etime,args --no-headers | awk '$1=="ffprobe"' | head -5); [ -n "$sc" ] && echo "$sc" || echo "No ffprobe at this exact second (a scan can still be between files - see below)."; echo; echo "=== Library scan in the recent log ==="; log=$(sudo docker logs --tail 300 jellyfin 2>&1) || exit $?; echo "$log" | grep -i scan | tail -5 | grep . || echo "No scan activity in the last 300 log lines."'''
+command = '''echo "=== Transcoding right now? ==="; tr=$(ps -eo comm,pcpu,etime,args --no-headers | awk '$1=="ffmpeg"' | head -5); [ -n "$tr" ] && echo "$tr" || echo "No, nothing is transcoding."; echo; echo "=== Scanning the library right now? ==="; sc=$(ps -eo comm,pcpu,etime,args --no-headers | awk '$1=="ffprobe"' | head -5); [ -n "$sc" ] && echo "$sc" || echo "No ffprobe at this exact second (a scan can still be between files - see below)."; echo; echo "=== Library scan in the recent log ==="; log=$(sudo docker logs --tail 300 jellyfin 2>&1) || { echo "$log" >&2; exit 1; }; echo "$log" | grep -i scan | tail -5 | grep . || echo "No scan activity in the last 300 log lines."'''
 icon_name = "cpu"
 color = "#f8e45c"
 show_output = true
@@ -41,7 +41,7 @@ tooltip = "One snapshot of the CPU, memory, network and disk use of the Jellyfin
 [[button]]
 id = "jfd-040"
 name = "Recent errors"
-command = '''log=$(sudo docker logs --tail 500 jellyfin 2>&1) || exit $?; echo "$log" | grep "\[ERR\]" | tail -20 | grep . || echo "No errors in the last 500 log lines."'''
+command = '''log=$(sudo docker logs --tail 500 jellyfin 2>&1) || { echo "$log" >&2; exit 1; }; echo "$log" | grep "\[ERR\]" | tail -20 | grep . || echo "No errors in the last 500 log lines."'''
 icon_name = "exclamation-triangle"
 color = "#ffbe6f"
 show_output = true
@@ -86,7 +86,7 @@ tooltip = "The two reasons hardware transcoding silently falls back to the CPU: 
 [[button]]
 id = "jfd-090"
 name = "Installed plugins"
-command = '''sudo docker ps >/dev/null || exit $?; out=$(sudo docker exec jellyfin ls -1 /config/plugins 2>/dev/null); [ -n "$out" ] && echo "$out" || echo "No plugins installed (or this image keeps them elsewhere)."'''
+command = '''sudo docker ps >/dev/null || exit $?; out=$(sudo docker exec jellyfin sh -c 'ls -1 /config/data/plugins 2>/dev/null || ls -1 /config/plugins 2>/dev/null'); [ -n "$out" ] && echo "$out" || echo "No plugins installed."'''
 icon_name = "stack"
 color = "#99c1f1"
 show_output = true
@@ -96,7 +96,7 @@ tooltip = "When Jellyfin misbehaves for no visible reason, a plugin is a frequen
 [[button]]
 id = "jfd-100"
 name = "Restart Jellyfin"
-command = '''sudo docker restart jellyfin && sleep 3 && sudo docker ps --filter name=jellyfin --format "{{.Names}}: {{.Status}}"'''
+command = '''sudo docker restart jellyfin >/dev/null && sleep 3 && sudo docker ps --filter name=jellyfin --format "{{.Names}}: {{.Status}}"'''
 icon_name = "arrow-clockwise"
 color = "#f8e45c"
 show_output = true
@@ -106,7 +106,7 @@ tooltip = "First move when something is stuck. Anyone watching will be interrupt
 [[button]]
 id = "jfd-110"
 name = "Update Jellyfin"
-command = '''sudo docker ps >/dev/null || exit $?; dir=$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' jellyfin 2>/dev/null); if [ -z "$dir" ]; then echo "This container was not created by docker compose."; echo "Update it from Portainer instead: Containers > jellyfin > Recreate, with 'Pull latest image' enabled."; exit 0; fi; echo "Compose folder: $dir"; cd "$dir" && sudo docker compose pull && sudo docker compose up -d && sleep 5 && sudo docker ps --filter name=jellyfin --format "{{.Names}}: {{.Status}}"'''
+command = '''sudo docker ps >/dev/null || exit $?; dir=$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' jellyfin 2>/dev/null); if [ -z "$dir" ] || [ ! -d "$dir" ]; then echo "The compose file for this container is not reachable from the server."; echo "Update it from Portainer: Stacks > your stack > Update the stack, with 'Re-pull image' enabled."; echo "(A Portainer stack keeps its compose file inside Portainer's own volume, so the server cannot open it.)"; exit 0; fi; echo "Compose folder: $dir"; cd "$dir" && sudo docker compose pull && sudo docker compose up -d && sleep 5 && sudo docker ps --filter name=jellyfin --format "{{.Names}}: {{.Status}}"'''
 icon_name = "cloud-download"
 color = "#62a0ea"
 show_output = true
