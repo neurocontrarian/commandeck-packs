@@ -1,0 +1,125 @@
+version = 1
+
+[pack]
+pack_id = "jellyfin-systemd"
+name = "Jellyfin (system install)"
+pack_ver = "1.0.0"
+os = "linux"
+category = "Jellyfin"
+description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin installed on the machine itself and managed by systemctl."
+requires = "Jellyfin installed as a system service (apt/deb package, bare metal, or inside a Proxmox/LXC container), reached over SSH. Running Jellyfin in Docker instead? Install 'Jellyfin (Docker)' - the commands are completely different."
+tags = ["jellyfin", "systemd", "lxc", "proxmox", "media-server", "selfhosted", "diagnostics"]
+
+# ── Is it healthy? ────────────────────────────────────────────────────────
+[[button]]
+id = "jfs-010"
+name = "Is Jellyfin running?"
+command = "systemctl status jellyfin --no-pager | head -15"
+icon_name = "info-circle"
+color = "#62a0ea"
+show_output = true
+tooltip = "Active or failed, since when, and the last few log lines - the one-glance health check."
+
+[[button]]
+id = "jfs-020"
+name = "Why is Jellyfin busy?"
+command = '''echo "=== Transcoding right now? ==="; ps aux | grep ffmpeg | grep -v grep | head -5 | grep . || echo "No, nothing is transcoding."; echo; echo "=== Scanning the library right now? ==="; ps aux | grep ffprobe | grep -v grep | head -5 | grep . || echo "No ffprobe at this exact second (a scan can still be between files - see below)."; echo; echo "=== Library scan in the recent log ==="; log=$(journalctl -u jellyfin -n 300 --no-pager 2>/dev/null || sudo journalctl -u jellyfin -n 300 --no-pager 2>/dev/null); echo "$log" | grep -i scan | tail -5 | grep . || echo "No scan activity in the last 300 log lines."'''
+icon_name = "cpu"
+color = "#f8e45c"
+show_output = true
+tooltip = "Noisy drives or a hot CPU? This answers it: transcoding, a library scan, or neither. ffmpeg with nobody watching is usually trickplay (thumbnail previews) being generated."
+
+[[button]]
+id = "jfs-030"
+name = "Resources right now"
+command = '''systemctl status jellyfin --no-pager | grep -E "Active:|Tasks:|Memory:|CPU:" | grep . || echo "Jellyfin does not seem to be installed as a system service on this machine."'''
+icon_name = "activity"
+color = "#8ff0a4"
+show_output = true
+tooltip = "How much memory and CPU time the Jellyfin service has used, straight from systemd."
+
+[[button]]
+id = "jfs-040"
+name = "Recent errors"
+command = '''log=$(journalctl -u jellyfin -n 500 --no-pager 2>/dev/null || sudo journalctl -u jellyfin -n 500 --no-pager 2>/dev/null); echo "$log" | grep "\[ERR\]" | tail -20 | grep . || echo "No errors in the last 500 log lines."'''
+icon_name = "exclamation-triangle"
+color = "#ffbe6f"
+show_output = true
+tooltip = "Only real errors. Warnings are filtered out on purpose - a healthy Jellyfin prints plenty of harmless ones."
+
+[[button]]
+id = "jfs-050"
+name = "Full recent log"
+command = '''journalctl -u jellyfin -n 60 --no-pager 2>/dev/null || sudo journalctl -u jellyfin -n 60 --no-pager'''
+icon_name = "journal-text"
+color = "#ffa348"
+show_output = true
+tooltip = "The raw last 60 lines, unfiltered. Use it when the filtered buttons are not enough - or to copy/paste into your AI assistant or a forum post."
+
+[[button]]
+id = "jfs-060"
+name = "Disk activity"
+command = '''command -v iotop >/dev/null || { echo "iotop is not installed on this server."; echo "Install it with: sudo apt install iotop"; exit 0; }; sudo iotop -bon1 | head -20'''
+icon_name = "hdd"
+color = "#99c1f1"
+show_output = true
+tooltip = "Which process is actually hitting the drives, one measurement (not the interactive full-screen iotop). Needs the iotop package."
+
+[[button]]
+id = "jfs-070"
+name = "Space & transcode cache"
+command = '''echo "=== Disks ==="; df -h /var/lib/jellyfin 2>/dev/null || df -h; echo; echo "=== Transcode cache size ==="; for d in /var/lib/jellyfin/transcodes /var/cache/jellyfin/transcodes /tmp/jellyfin-transcodes; do [ -d "$d" ] && du -sh "$d" 2>/dev/null; done | grep . || echo "No transcode folder found (nothing cached, or it lives elsewhere on this install)."'''
+icon_name = "folder2"
+color = "#57e389"
+show_output = true
+tooltip = "Free space where Jellyfin stores its data, plus how much room the transcode cache is eating."
+
+[[button]]
+id = "jfs-080"
+name = "Hardware acceleration"
+command = '''echo "=== GPU available? ==="; ls -l /dev/dri 2>/dev/null || echo "No /dev/dri on this machine - no GPU is available to Jellyfin. In an LXC container the device also has to be passed through from the Proxmox host."; echo; echo "=== Is Jellyfin allowed to use it? ==="; id jellyfin 2>/dev/null || echo "(no jellyfin user on this system - it may run as someone else)"; echo "The jellyfin user must belong to the group owning /dev/dri/renderD128 (usually render, sometimes video). Fix: sudo usermod -aG render jellyfin, then restart Jellyfin."'''
+icon_name = "pc-display"
+color = "#dc8add"
+show_output = true
+tooltip = "The two reasons hardware transcoding silently falls back to the CPU: no GPU device, or the jellyfin user is not in the render group."
+
+[[button]]
+id = "jfs-090"
+name = "Installed plugins"
+command = '''ls -1 /var/lib/jellyfin/plugins 2>/dev/null | grep . || echo "No plugins installed (or this install keeps them elsewhere)."'''
+icon_name = "stack"
+color = "#99c1f1"
+show_output = true
+tooltip = "When Jellyfin misbehaves for no visible reason, a plugin is a frequent culprit. This lists what is loaded."
+
+# ── Acting (rare, and in this order) ──────────────────────────────────────
+[[button]]
+id = "jfs-100"
+name = "Restart Jellyfin"
+command = '''systemctl restart jellyfin 2>/dev/null || sudo -n systemctl restart jellyfin 2>/dev/null || { echo COMMANDECK_NEEDS_ADMIN >&2; echo "Restarting Jellyfin needs admin rights."; echo "Easiest fix: save this machine's SSH password in Commandeck (Machines > edit) - admin actions then work automatically."; exit 1; }; sleep 3; systemctl status jellyfin --no-pager | head -8'''
+icon_name = "arrow-clockwise"
+color = "#f8e45c"
+show_output = true
+confirm_before_run = true
+tooltip = "First move when something is stuck. Anyone watching will be interrupted. Restarts the service and reports its new status."
+
+[[button]]
+id = "jfs-110"
+name = "Update Jellyfin"
+command = '''command -v apt-get >/dev/null || { echo "This machine does not use apt - update Jellyfin with your own package manager."; exit 0; }; sudo apt-get update && sudo apt-get install --only-upgrade -y jellyfin jellyfin-server jellyfin-web; echo; sleep 3; systemctl status jellyfin --no-pager | head -8'''
+icon_name = "cloud-download"
+color = "#62a0ea"
+show_output = true
+confirm_before_run = true
+timeout = 600
+tooltip = "Upgrades the Jellyfin packages from the repository you installed them from, then checks the service came back up."
+
+[[button]]
+id = "jfs-120"
+name = "Clear the transcode cache"
+command = '''found=0; for d in /var/lib/jellyfin/transcodes /var/cache/jellyfin/transcodes /tmp/jellyfin-transcodes; do [ -d "$d" ] || continue; found=1; echo "$d before: $(sudo du -sh "$d" 2>/dev/null | cut -f1)"; sudo rm -rf "$d"/*; echo "$d after:  $(sudo du -sh "$d" 2>/dev/null | cut -f1)"; done; [ "$found" = "1" ] || echo "No transcode folder found - nothing to clear."'''
+icon_name = "trash"
+color = "#f66151"
+show_output = true
+confirm_before_run = true
+tooltip = "Deletes the temporary transcoding files only - never your media, never your settings. Do not click it while someone is watching."

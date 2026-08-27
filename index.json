@@ -58,9 +58,45 @@
         "selfhosted",
         "ssh"
       ],
-      "pack_ver": "1.2.0",
+      "pack_ver": "1.3.0",
       "path": "linux/home-server-starter/pack.toml",
       "sig": "linux/home-server-starter/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "jellyfin-docker",
+      "name": "Jellyfin (Docker)",
+      "description": "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin running in a Docker container.",
+      "os": "linux",
+      "tags": [
+        "jellyfin",
+        "docker",
+        "media-server",
+        "selfhosted",
+        "diagnostics"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "linux/jellyfin-docker/pack.toml",
+      "sig": "linux/jellyfin-docker/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "jellyfin-systemd",
+      "name": "Jellyfin (system install)",
+      "description": "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin installed on the machine itself and managed by systemctl.",
+      "os": "linux",
+      "tags": [
+        "jellyfin",
+        "systemd",
+        "lxc",
+        "proxmox",
+        "media-server",
+        "selfhosted",
+        "diagnostics"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "linux/jellyfin-systemd/pack.toml",
+      "sig": "linux/jellyfin-systemd/pack.sig",
       "signed": true
     },
     {

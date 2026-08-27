@@ -1,0 +1,125 @@
+version = 1
+
+[pack]
+pack_id = "jellyfin-docker"
+name = "Jellyfin (Docker)"
+pack_ver = "1.0.0"
+os = "linux"
+category = "Jellyfin"
+description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin running in a Docker container."
+requires = "Jellyfin in a Docker container named jellyfin, reached over SSH by a user allowed to run sudo. Installed Jellyfin with apt, or inside a Proxmox/LXC container? Install 'Jellyfin (system install)' instead - the commands are completely different."
+tags = ["jellyfin", "docker", "media-server", "selfhosted", "diagnostics"]
+
+# ── Is it healthy? ────────────────────────────────────────────────────────
+[[button]]
+id = "jfd-010"
+name = "Is Jellyfin running?"
+command = '''sudo docker ps -a --filter name=jellyfin --format "{{.Names}}: {{.Status}}" | grep . || echo "No container named jellyfin exists on this machine."'''
+icon_name = "info-circle"
+color = "#62a0ea"
+show_output = true
+tooltip = "Shows the container and how long it has been up - or why it stopped (Exited 137 = killed, out of memory)."
+
+[[button]]
+id = "jfd-020"
+name = "Why is Jellyfin busy?"
+command = '''echo "=== Transcoding right now? ==="; ps aux | grep ffmpeg | grep -v grep | head -5 | grep . || echo "No, nothing is transcoding."; echo; echo "=== Scanning the library right now? ==="; ps aux | grep ffprobe | grep -v grep | head -5 | grep . || echo "No ffprobe at this exact second (a scan can still be between files - see below)."; echo; echo "=== Library scan in the recent log ==="; sudo docker logs --tail 300 jellyfin 2>&1 | grep -i scan | tail -5 | grep . || echo "No scan activity in the last 300 log lines."'''
+icon_name = "cpu"
+color = "#f8e45c"
+show_output = true
+tooltip = "Noisy drives or a hot CPU? This answers it: transcoding, a library scan, or neither. ffmpeg with nobody watching is usually trickplay (thumbnail previews) being generated."
+
+[[button]]
+id = "jfd-030"
+name = "Resources right now"
+command = "sudo docker stats --no-stream jellyfin"
+icon_name = "activity"
+color = "#8ff0a4"
+show_output = true
+tooltip = "One snapshot of the CPU, memory, network and disk use of the Jellyfin container."
+
+[[button]]
+id = "jfd-040"
+name = "Recent errors"
+command = '''sudo docker logs --tail 500 jellyfin 2>&1 | grep "\[ERR\]" | tail -20 | grep . || echo "No errors in the last 500 log lines."'''
+icon_name = "exclamation-triangle"
+color = "#ffbe6f"
+show_output = true
+tooltip = "Only real errors. Warnings are filtered out on purpose - a healthy Jellyfin prints plenty of harmless ones."
+
+[[button]]
+id = "jfd-050"
+name = "Full recent log"
+command = "sudo docker logs --tail 60 jellyfin 2>&1"
+icon_name = "journal-text"
+color = "#ffa348"
+show_output = true
+tooltip = "The raw last 60 lines, unfiltered. Use it when the filtered buttons are not enough - or to copy/paste into your AI assistant or a forum post."
+
+[[button]]
+id = "jfd-060"
+name = "Disk activity"
+command = '''command -v iotop >/dev/null || { echo "iotop is not installed on this server."; echo "Install it with: sudo apt install iotop"; exit 0; }; sudo iotop -bon1 | head -20'''
+icon_name = "hdd"
+color = "#99c1f1"
+show_output = true
+tooltip = "Which process is actually hitting the drives, one measurement (not the interactive full-screen iotop). Needs the iotop package."
+
+[[button]]
+id = "jfd-070"
+name = "Space & transcode cache"
+command = '''echo "=== Disks Jellyfin can see ==="; sudo docker exec jellyfin df -h /config /media 2>/dev/null || { echo "(container not running - showing the host disks)"; df -h; }; echo; echo "=== Transcode cache size ==="; sudo docker exec jellyfin sh -c 'for d in /config/transcodes /config/data/transcodes /config/cache/transcodes; do [ -d "$d" ] && du -sh "$d"; done' 2>/dev/null | grep . || echo "No transcode folder found (nothing cached, or this image stores it elsewhere)."'''
+icon_name = "folder2"
+color = "#57e389"
+show_output = true
+tooltip = "Free space on the config and media volumes, plus how much room the transcode cache is eating."
+
+[[button]]
+id = "jfd-080"
+name = "Hardware acceleration"
+command = '''echo "=== GPU visible inside the container? ==="; sudo docker exec jellyfin ls -l /dev/dri 2>/dev/null || echo "No /dev/dri inside the container. The GPU is not passed through - add 'devices: - /dev/dri:/dev/dri' to your compose file."; echo; echo "=== Is Jellyfin allowed to use it? ==="; sudo docker exec jellyfin id 2>/dev/null || echo "(container not running)"; echo "The user above must belong to the group that owns /dev/dri/renderD128. If it does not, add that group id with 'group_add' in your compose file."'''
+icon_name = "pc-display"
+color = "#dc8add"
+show_output = true
+tooltip = "The two reasons hardware transcoding silently falls back to the CPU: the device is not passed through, or the container user is not in the render group."
+
+[[button]]
+id = "jfd-090"
+name = "Installed plugins"
+command = '''sudo docker exec jellyfin ls -1 /config/plugins 2>/dev/null | grep . || echo "No plugins installed (or this image keeps them elsewhere)."'''
+icon_name = "stack"
+color = "#99c1f1"
+show_output = true
+tooltip = "When Jellyfin misbehaves for no visible reason, a plugin is a frequent culprit. This lists what is loaded."
+
+# ── Acting (rare, and in this order) ──────────────────────────────────────
+[[button]]
+id = "jfd-100"
+name = "Restart Jellyfin"
+command = '''sudo docker restart jellyfin && sleep 3 && sudo docker ps --filter name=jellyfin --format "{{.Names}}: {{.Status}}"'''
+icon_name = "arrow-clockwise"
+color = "#f8e45c"
+show_output = true
+confirm_before_run = true
+tooltip = "First move when something is stuck. Anyone watching will be interrupted. Restarts the container and reports its new status."
+
+[[button]]
+id = "jfd-110"
+name = "Update Jellyfin"
+command = '''dir=$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' jellyfin 2>/dev/null); if [ -z "$dir" ]; then echo "This container was not created by docker compose."; echo "Update it from Portainer instead: Containers > jellyfin > Recreate, with 'Pull latest image' enabled."; exit 0; fi; echo "Compose folder: $dir"; cd "$dir" && sudo docker compose pull && sudo docker compose up -d && sleep 5 && sudo docker ps --filter name=jellyfin --format "{{.Names}}: {{.Status}}"'''
+icon_name = "cloud-download"
+color = "#62a0ea"
+show_output = true
+confirm_before_run = true
+timeout = 600
+tooltip = "Finds your compose folder by itself, pulls the newer image, recreates the container and checks it came back up. Nothing to configure."
+
+[[button]]
+id = "jfd-120"
+name = "Clear the transcode cache"
+command = '''sudo docker exec jellyfin sh -c 'for d in /config/transcodes /config/data/transcodes /config/cache/transcodes; do [ -d "$d" ] || continue; echo "$d before: $(du -sh "$d" | cut -f1)"; rm -rf "$d"/*; echo "$d after:  $(du -sh "$d" | cut -f1)"; done' 2>/dev/null | grep . || echo "No transcode folder found - nothing to clear."'''
+icon_name = "trash"
+color = "#f66151"
+show_output = true
+confirm_before_run = true
+tooltip = "Deletes the temporary transcoding files only - never your media, never your settings. Do not click it while someone is watching."
