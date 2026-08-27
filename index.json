@@ -94,7 +94,7 @@
         "selfhosted",
         "diagnostics"
       ],
-      "pack_ver": "1.0.7",
+      "pack_ver": "1.0.9",
       "path": "linux/jellyfin-systemd/pack.toml",
       "sig": "linux/jellyfin-systemd/pack.sig",
       "signed": true

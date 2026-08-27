@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "jellyfin-systemd"
 name = "Jellyfin (system install)"
-pack_ver = "1.0.7"
+pack_ver = "1.0.9"
 os = "linux"
 category = "Jellyfin"
 description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin installed on the machine itself and managed by systemctl."
@@ -14,7 +14,7 @@ tags = ["jellyfin", "systemd", "lxc", "proxmox", "media-server", "selfhosted", "
 [[button]]
 id = "jfs-010"
 name = "Is Jellyfin running?"
-command = "systemctl status jellyfin --no-pager | head -15"
+command = '''systemctl status jellyfin --no-pager >/dev/null 2>&1; [ $? = 4 ] && { echo "There is no jellyfin service on this machine."; echo "If Jellyfin runs in Docker here, install the 'Jellyfin (Docker)' pack instead - these commands cannot see inside a container."; exit 0; }; systemctl status jellyfin --no-pager 2>&1 | head -15'''
 icon_name = "info-circle"
 color = "#62a0ea"
 show_output = true
@@ -32,7 +32,7 @@ tooltip = "Noisy drives or a hot CPU? This answers it: transcoding, a library sc
 [[button]]
 id = "jfs-030"
 name = "Resources right now"
-command = '''out=$(systemctl status jellyfin --no-pager | grep -E "Active:|Tasks:|Memory:|CPU:"); [ -n "$out" ] && echo "$out" || echo "Jellyfin does not seem to be installed as a system service on this machine."'''
+command = '''out=$(systemctl status jellyfin --no-pager | grep -E "Active:|Tasks:|Memory:|CPU:"); [ -n "$out" ] && echo "$out" || echo "No jellyfin service on this machine. If Jellyfin runs in Docker here, install the 'Jellyfin (Docker)' pack instead."'''
 icon_name = "activity"
 color = "#8ff0a4"
 show_output = true
