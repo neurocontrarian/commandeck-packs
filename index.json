@@ -75,7 +75,7 @@
         "selfhosted",
         "diagnostics"
       ],
-      "pack_ver": "1.0.6",
+      "pack_ver": "1.0.7",
       "path": "linux/jellyfin-docker/pack.toml",
       "sig": "linux/jellyfin-docker/pack.sig",
       "signed": true
@@ -94,7 +94,7 @@
         "selfhosted",
         "diagnostics"
       ],
-      "pack_ver": "1.0.5",
+      "pack_ver": "1.0.6",
       "path": "linux/jellyfin-systemd/pack.toml",
       "sig": "linux/jellyfin-systemd/pack.sig",
       "signed": true
