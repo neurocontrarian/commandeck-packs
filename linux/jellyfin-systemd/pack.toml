@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "jellyfin-systemd"
 name = "Jellyfin (system install)"
-pack_ver = "1.0.4"
+pack_ver = "1.0.5"
 os = "linux"
 category = "Jellyfin"
 description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin installed on the machine itself and managed by systemctl."
@@ -58,13 +58,13 @@ tooltip = "The raw last 60 lines, unfiltered. Use it when the filtered buttons a
 
 [[button]]
 id = "jfs-060"
-name = "Disk activity"
-command = '''if ! command -v iotop >/dev/null; then echo "iotop is missing on this server - installing it now (one-off, from your distribution's repository)."; if command -v apt-get >/dev/null; then sudo apt-get install -y iotop 2>/dev/null || { sudo apt-get update -qq && sudo apt-get install -y iotop; } || exit $?; elif command -v dnf >/dev/null; then sudo dnf install -y iotop || exit $?; elif command -v pacman >/dev/null; then sudo pacman -S --noconfirm iotop || exit $?; elif command -v zypper >/dev/null; then sudo zypper install -y iotop || exit $?; elif command -v apk >/dev/null; then sudo apk add iotop || exit $?; else echo "Unknown package manager - please install iotop yourself."; exit 0; fi; echo "Installed. Measuring..."; echo; fi; out=$(sudo iotop -bon1) || exit $?; echo "$out" | head -20'''
+name = "Disk activity (4 s)"
+command = '''if ! command -v iotop >/dev/null; then echo "iotop is missing on this server - installing it now (one-off, from your distribution's repository)."; if command -v apt-get >/dev/null; then sudo apt-get install -y iotop 2>/dev/null || { sudo apt-get update -qq && sudo apt-get install -y iotop; } || exit $?; elif command -v dnf >/dev/null; then sudo dnf install -y iotop || exit $?; elif command -v pacman >/dev/null; then sudo pacman -S --noconfirm iotop || exit $?; elif command -v zypper >/dev/null; then sudo zypper install -y iotop || exit $?; elif command -v apk >/dev/null; then sudo apk add iotop || exit $?; else echo "Unknown package manager - please install iotop yourself."; exit 0; fi; echo "Installed. Measuring..."; echo; fi; out=$(sudo iotop -boPn4 -d 1 2>/dev/null) || exit $?; echo "$out" | head -40; echo "$out" | grep -qE "^[[:space:]]*[0-9]+" || { echo; echo "Nothing read or wrote to the drives during those 4 seconds."; echo "That is normal while watching a video already held in memory, or streamed without transcoding - Jellyfin reads a big chunk ahead, then stays idle for a long while."; }'''
 icon_name = "hdd"
 color = "#99c1f1"
 show_output = true
 timeout = 300
-tooltip = "Which process is actually hitting the drives, one measurement (not the interactive full-screen iotop). Installs the iotop package by itself the first time, without asking."
+tooltip = "Records 4 seconds of drive activity, one line per second, and names the processes responsible. Installs the iotop tool by itself the first time."
 
 [[button]]
 id = "jfs-070"
