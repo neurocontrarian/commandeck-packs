@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "jellyfin-systemd"
 name = "Jellyfin (system install)"
-pack_ver = "1.0.0"
+pack_ver = "1.0.1"
 os = "linux"
 category = "Jellyfin"
 description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin installed on the machine itself and managed by systemctl."
@@ -23,7 +23,7 @@ tooltip = "Active or failed, since when, and the last few log lines - the one-gl
 [[button]]
 id = "jfs-020"
 name = "Why is Jellyfin busy?"
-command = '''echo "=== Transcoding right now? ==="; ps aux | grep ffmpeg | grep -v grep | head -5 | grep . || echo "No, nothing is transcoding."; echo; echo "=== Scanning the library right now? ==="; ps aux | grep ffprobe | grep -v grep | head -5 | grep . || echo "No ffprobe at this exact second (a scan can still be between files - see below)."; echo; echo "=== Library scan in the recent log ==="; log=$(journalctl -u jellyfin -n 300 --no-pager 2>/dev/null || sudo journalctl -u jellyfin -n 300 --no-pager 2>/dev/null); echo "$log" | grep -i scan | tail -5 | grep . || echo "No scan activity in the last 300 log lines."'''
+command = '''echo "=== Transcoding right now? ==="; tr=$(ps -eo comm,pcpu,etime,args --no-headers | awk '$1=="ffmpeg"' | head -5); [ -n "$tr" ] && echo "$tr" || echo "No, nothing is transcoding."; echo; echo "=== Scanning the library right now? ==="; sc=$(ps -eo comm,pcpu,etime,args --no-headers | awk '$1=="ffprobe"' | head -5); [ -n "$sc" ] && echo "$sc" || echo "No ffprobe at this exact second (a scan can still be between files - see below)."; echo; echo "=== Library scan in the recent log ==="; log=$(journalctl -u jellyfin -n 300 --no-pager 2>/dev/null || sudo journalctl -u jellyfin -n 300 --no-pager) || exit $?; echo "$log" | grep -i scan | tail -5 | grep . || echo "No scan activity in the last 300 log lines."'''
 icon_name = "cpu"
 color = "#f8e45c"
 show_output = true
@@ -32,7 +32,7 @@ tooltip = "Noisy drives or a hot CPU? This answers it: transcoding, a library sc
 [[button]]
 id = "jfs-030"
 name = "Resources right now"
-command = '''systemctl status jellyfin --no-pager | grep -E "Active:|Tasks:|Memory:|CPU:" | grep . || echo "Jellyfin does not seem to be installed as a system service on this machine."'''
+command = '''out=$(systemctl status jellyfin --no-pager | grep -E "Active:|Tasks:|Memory:|CPU:"); [ -n "$out" ] && echo "$out" || echo "Jellyfin does not seem to be installed as a system service on this machine."'''
 icon_name = "activity"
 color = "#8ff0a4"
 show_output = true
@@ -41,7 +41,7 @@ tooltip = "How much memory and CPU time the Jellyfin service has used, straight 
 [[button]]
 id = "jfs-040"
 name = "Recent errors"
-command = '''log=$(journalctl -u jellyfin -n 500 --no-pager 2>/dev/null || sudo journalctl -u jellyfin -n 500 --no-pager 2>/dev/null); echo "$log" | grep "\[ERR\]" | tail -20 | grep . || echo "No errors in the last 500 log lines."'''
+command = '''log=$(journalctl -u jellyfin -n 500 --no-pager 2>/dev/null || sudo journalctl -u jellyfin -n 500 --no-pager) || exit $?; echo "$log" | grep "\[ERR\]" | tail -20 | grep . || echo "No errors in the last 500 log lines."'''
 icon_name = "exclamation-triangle"
 color = "#ffbe6f"
 show_output = true
@@ -59,7 +59,7 @@ tooltip = "The raw last 60 lines, unfiltered. Use it when the filtered buttons a
 [[button]]
 id = "jfs-060"
 name = "Disk activity"
-command = '''command -v iotop >/dev/null || { echo "iotop is not installed on this server."; echo "Install it with: sudo apt install iotop"; exit 0; }; sudo iotop -bon1 | head -20'''
+command = '''command -v iotop >/dev/null || { echo "iotop is not installed on this server."; echo "Install it with: sudo apt install iotop"; exit 0; }; out=$(sudo iotop -bon1) || exit $?; echo "$out" | head -20'''
 icon_name = "hdd"
 color = "#99c1f1"
 show_output = true
@@ -86,7 +86,7 @@ tooltip = "The two reasons hardware transcoding silently falls back to the CPU: 
 [[button]]
 id = "jfs-090"
 name = "Installed plugins"
-command = '''ls -1 /var/lib/jellyfin/plugins 2>/dev/null | grep . || echo "No plugins installed (or this install keeps them elsewhere)."'''
+command = '''out=$(ls -1 /var/lib/jellyfin/plugins 2>/dev/null); [ -n "$out" ] && echo "$out" || echo "No plugins installed (or this install keeps them elsewhere)."'''
 icon_name = "stack"
 color = "#99c1f1"
 show_output = true
@@ -117,7 +117,7 @@ tooltip = "Upgrades the Jellyfin packages from the repository you installed them
 [[button]]
 id = "jfs-120"
 name = "Clear the transcode cache"
-command = '''found=0; for d in /var/lib/jellyfin/transcodes /var/cache/jellyfin/transcodes /tmp/jellyfin-transcodes; do [ -d "$d" ] || continue; found=1; echo "$d before: $(sudo du -sh "$d" 2>/dev/null | cut -f1)"; sudo rm -rf "$d"/*; echo "$d after:  $(sudo du -sh "$d" 2>/dev/null | cut -f1)"; done; [ "$found" = "1" ] || echo "No transcode folder found - nothing to clear."'''
+command = '''found=0; for d in /var/lib/jellyfin/transcodes /var/cache/jellyfin/transcodes /tmp/jellyfin-transcodes; do [ -d "$d" ] || continue; found=1; echo "$d before: $(sudo du -sh "$d" 2>/dev/null | cut -f1)"; sudo rm -rf "$d"/* || exit $?; echo "$d after:  $(sudo du -sh "$d" 2>/dev/null | cut -f1)"; done; [ "$found" = "1" ] || echo "No transcode folder found - nothing to clear."'''
 icon_name = "trash"
 color = "#f66151"
 show_output = true
