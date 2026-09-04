@@ -3,6 +3,23 @@
   "base_url": "https://raw.githubusercontent.com/neurocontrarian/commandeck-packs/main",
   "packs": [
     {
+      "pack_id": "batocera",
+      "name": "Batocera",
+      "description": "The retro gaming box under the TV, answered from your desk or your phone: why a game refused to start, what fills the disk, which pads are seen - plus close a stuck game, rescue a black screen and shut down cleanly.",
+      "os": "linux",
+      "tags": [
+        "batocera",
+        "retro-gaming",
+        "emulation",
+        "ssh",
+        "diagnostics"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "linux/batocera/pack.toml",
+      "sig": "linux/batocera/pack.sig",
+      "signed": true
+    },
+    {
       "pack_id": "linux-dev-tools",
       "name": "Developer Tools",
       "description": "Git, Python and Node status at a glance. For people who code on the box, not just run a server.",

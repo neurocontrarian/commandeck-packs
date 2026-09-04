@@ -1,0 +1,174 @@
+version = 1
+
+[pack]
+pack_id = "batocera"
+name = "Batocera"
+pack_ver = "1.0.0"
+os = "linux"
+category = "Batocera"
+description = "The retro gaming box under the TV, answered from your desk or your phone: why a game refused to start, what fills the disk, which pads are seen - plus close a stuck game, rescue a black screen and shut down cleanly."
+requires = "A Batocera machine reachable over SSH. Batocera logs you in as root, so no sudo and no admin password is involved. These commands are Batocera-specific: they will not work on a normal Linux server."
+tags = ["batocera", "retro-gaming", "emulation", "ssh", "diagnostics"]
+
+# ── Questions (most of the value is here) ─────────────────────────────────
+[[button]]
+id = "bat-010"
+name = "How is the box doing?"
+command = '''batocera-info; echo; echo "=== Uptime and load ==="; uptime'''
+icon_name = "info-circle"
+color = "#62a0ea"
+show_output = true
+category = "Batocera"
+os = "linux"
+tooltip = "The same summary Batocera prints when you log in: version, architecture, temperature, memory and disk - plus how long the box has been running."
+
+[[button]]
+id = "bat-020"
+name = "Why did my game not start?"
+command = '''f=/userdata/system/logs/es_launch_stderr.log; if [ ! -s "$f" ]; then echo "Nothing recorded: $f is empty or missing."; echo "This log only fills up when a game actually fails to start, so an empty log is good news."; exit 0; fi; echo "Last failed launch - the useful line is usually near the bottom."; echo "(A missing BIOS file, an unsupported ROM format or a wrong file permission all show up here.)"; echo; tail -40 "$f"'''
+icon_name = "exclamation-triangle"
+color = "#ffbe6f"
+show_output = true
+category = "Batocera"
+os = "linux"
+tooltip = "The number one Batocera question, answered without plugging a keyboard into the TV. Copy the output into your AI assistant or a forum post if it is not obvious."
+
+[[button]]
+id = "bat-030"
+name = "Is a game running right now?"
+command = '''command -v batocera-es-swissknife >/dev/null || { echo "batocera-es-swissknife not found - this machine does not look like a Batocera box." >&2; exit 1; }; pid=$(batocera-es-swissknife --emupid 2>/dev/null | tr -dc '0-9'); if [ -n "$pid" ]; then echo "Yes - a game or emulator is running (PID $pid):"; echo; ps 2>/dev/null | grep "^ *$pid " || echo "(process details unavailable)"; else echo "No game running - the box is sitting in the EmulationStation menu."; fi'''
+icon_name = "activity"
+color = "#8ff0a4"
+show_output = true
+category = "Batocera"
+os = "linux"
+tooltip = "Tells you whether someone is playing before you restart anything - and names the emulator that is stuck when nothing responds on screen."
+
+[[button]]
+id = "bat-040"
+name = "Free space"
+command = '''echo "=== Free space ==="; df -h /userdata 2>/dev/null; echo; echo "=== Biggest folders in /userdata ==="; out=$(du -sm /userdata/* 2>/dev/null | sort -rn | head -10 | awk '{printf "%6s MB  %s\n", $1, $2}'); [ -n "$out" ] && echo "$out" || echo "Could not measure the folders."'''
+icon_name = "hdd"
+color = "#62a0ea"
+show_output = true
+category = "Batocera"
+os = "linux"
+tooltip = "Everything you add lives in /userdata - ROMs, saves, screenshots, BIOS. This is the partition that fills up, and the folders that fill it."
+
+[[button]]
+id = "bat-050"
+name = "Which systems eat my disk?"
+command = '''[ -d /userdata/roms ] || { echo "No /userdata/roms folder on this machine - is this really a Batocera box?"; exit 0; }; echo "Size of each system's ROM folder, biggest first:"; echo; out=$(du -sm /userdata/roms/* 2>/dev/null | sort -rn | head -20 | awk '{printf "%6s MB  %s\n", $1, $2}'); [ -n "$out" ] && echo "$out" || echo "No ROMs installed yet."'''
+icon_name = "folder2"
+color = "#62a0ea"
+show_output = true
+category = "Batocera"
+os = "linux"
+tooltip = "Before buying a bigger card, see which console is actually taking the room. Sizes are in megabytes (1000 MB = 1 GB)."
+
+[[button]]
+id = "bat-060"
+name = "My controllers"
+command = '''out=$(batocera-padinfo 2>&1) || { echo "$out" >&2; exit 1; }; [ -n "$out" ] && echo "$out" || echo "No controller detected right now. A Bluetooth pad only shows up here once it is connected and awake."'''
+icon_name = "plug"
+color = "#8ff0a4"
+show_output = true
+category = "Batocera"
+os = "linux"
+tooltip = "Which pads Batocera actually sees, and how they are mapped. The first thing to check when a controller does nothing in a game."
+
+[[button]]
+id = "bat-070"
+name = "What is my screen doing?"
+command = '''echo "=== Resolution being sent to the screen ==="; batocera-resolution currentResolution; echo; echo "=== Current mode ==="; batocera-resolution currentMode; echo; echo "=== Outputs the box can see ==="; batocera-resolution listOutputs; echo; echo "=== Modes your screen accepts ==="; batocera-resolution listModes'''
+icon_name = "pc-display"
+color = "#62a0ea"
+show_output = true
+category = "Batocera"
+os = "linux"
+tooltip = "Everything about the display in one click: what is being sent, on which output, and the exact list of modes to pick from for the next button."
+
+# ── Actions ───────────────────────────────────────────────────────────────
+[[button]]
+id = "bat-080"
+name = "Set the display mode"
+command = '''batocera-resolution setMode {{mode}} || exit $?; sleep 2; echo "Asked for: {{mode}}"; printf "Now showing: "; batocera-resolution currentResolution'''
+icon_name = "pc-display-horizontal"
+color = "#f8e45c"
+show_output = true
+confirm_before_run = true
+category = "Batocera"
+os = "linux"
+tooltip = "The black-screen rescue: your TV shows nothing because a mode it cannot display got selected, and you fix it from your phone instead of hunting for a keyboard. Use a mode copied from \"What is my screen doing?\", or a safe one like 1920x1080.60."
+
+[[button]]
+id = "bat-090"
+name = "Close the running game"
+command = '''command -v batocera-es-swissknife >/dev/null || { echo "batocera-es-swissknife not found - this machine does not look like a Batocera box." >&2; exit 1; }; pid=$(batocera-es-swissknife --emupid 2>/dev/null | tr -dc '0-9'); if [ -z "$pid" ]; then echo "No game was running - nothing to close."; exit 0; fi; batocera-es-swissknife --emukill; sleep 3; pid=$(batocera-es-swissknife --emupid 2>/dev/null | tr -dc '0-9'); [ -z "$pid" ] && echo "Done - the game was closed, you should be back in the menu." || echo "The emulator is still running (PID $pid). Try \"Restart the menu\", then a reboot."'''
+icon_name = "power"
+color = "#ffa348"
+show_output = true
+confirm_before_run = true
+category = "Batocera"
+os = "linux"
+tooltip = "A frozen emulator with a controller that no longer responds: this closes it and hands the menu back, without rebooting the box. Unsaved progress in that game is lost."
+
+[[button]]
+id = "bat-100"
+name = "Restart the menu"
+command = '''echo "Restarting EmulationStation - the screen goes black for a few seconds."; batocera-es-swissknife --restart'''
+icon_name = "arrow-clockwise"
+color = "#f8e45c"
+show_output = true
+confirm_before_run = true
+category = "Batocera"
+os = "linux"
+tooltip = "Second step when the interface itself is stuck, or after adding ROMs so they appear. Lighter than a reboot - anything being played is closed."
+
+[[button]]
+id = "bat-110"
+name = "Take a screenshot"
+command = '''batocera-screenshot >/dev/null 2>&1; sleep 1; f=$(ls -t /userdata/screenshots 2>/dev/null | head -1); [ -n "$f" ] && echo "Saved: /userdata/screenshots/$f" || echo "No file appeared in /userdata/screenshots - is anything actually on screen?"'''
+icon_name = "file-text"
+color = "#8ff0a4"
+show_output = true
+category = "Batocera"
+os = "linux"
+tooltip = "Captures whatever is on the TV right now into /userdata/screenshots - handy for a high score, or for showing someone the error you are stuck on."
+
+[[button]]
+id = "bat-120"
+name = "Save my system changes"
+command = '''echo "Saving the system overlay - this can take a minute, do not power off."; batocera-save-overlay && echo "Done. Your changes outside /userdata will now survive the next reboot."'''
+icon_name = "box-seam"
+color = "#f8e45c"
+show_output = true
+confirm_before_run = true
+timeout = 600
+category = "Batocera"
+os = "linux"
+tooltip = "Batocera forgets everything outside /userdata when it reboots - that is by design, it keeps the box unbreakable. Ran this after installing or tweaking something at the system level? Then it stays."
+
+[[button]]
+id = "bat-130"
+name = "Reboot the box"
+command = '''echo "Rebooting now - the box drops off the network for a minute."; batocera-es-swissknife --reboot'''
+icon_name = "arrow-clockwise"
+color = "#ffa348"
+show_output = true
+confirm_before_run = true
+category = "Batocera"
+os = "linux"
+tooltip = "A clean restart. The connection is cut while it reboots, so an error at the end of the output is normal, not a failure."
+
+[[button]]
+id = "bat-140"
+name = "Shut down the box"
+command = '''echo "Shutting down now."; batocera-es-swissknife --shutdown'''
+icon_name = "power"
+color = "#f66151"
+show_output = true
+confirm_before_run = true
+category = "Batocera"
+os = "linux"
+tooltip = "A proper shutdown instead of pulling the plug - that is what keeps the SD card from being corrupted. The connection is cut as it goes down, so an error at the end is normal."
