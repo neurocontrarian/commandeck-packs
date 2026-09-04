@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "macos-network"
 name = "Network"
-pack_ver = "1.6.0"
+pack_ver = "1.7.0"
 os = "macos"
 category = "Network"
 description = "Interfaces, ports and connection diagnostics."
@@ -59,7 +59,7 @@ os = "macos"
 [[button]]
 id = "wifi-info"
 name = "Wi-Fi Info"
-command = "networksetup -getairportnetwork en0 2>/dev/null; echo; networksetup -getinfo Wi-Fi"
+command = "dev=$(networksetup -listallhardwareports | awk '/Wi-Fi|AirPort/{getline; print $2; exit}'); dev=${dev:-en0}; ssid=$(networksetup -getairportnetwork \"$dev\" 2>/dev/null); case \"$ssid\" in *'not associated'*) echo \"Current Wi-Fi Network: (hidden by macOS)\"; echo 'macOS 14.4 and later only reveal the network name to apps allowed Location Services. Allow Commandeck in System Settings > Privacy & Security > Location Services, or read the name from the Wi-Fi menu.';; *) echo \"$ssid\";; esac; echo; networksetup -getinfo \"$dev\""
 icon_name = "wifi"
 color = "#62a0ea"
 tooltip = "Show the current Wi-Fi network, IP address and router"
