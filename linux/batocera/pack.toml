@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "batocera"
 name = "Batocera"
-pack_ver = "1.0.3"
+pack_ver = "1.0.4"
 os = "linux"
 category = "Batocera"
 description = "The retro gaming box under the TV, answered from your desk or your phone: which game is running, why one refused to start, what fills the disk, which pads are seen - plus close a stuck game, rescue a black screen and shut down cleanly."
@@ -36,7 +36,7 @@ tooltip = "Batocera keeps the output of the last game it launched. A missing BIO
 [[button]]
 id = "bat-025"
 name = "Debug (es_log.txt)"
-command = '''f=$(ls -t /userdata/system/logs/es_log.txt /userdata/system/configs/emulationstation/es_log.txt 2>/dev/null | head -1); if [ -z "$f" ] || [ ! -s "$f" ]; then echo "No es_log.txt with anything in it. Batocera keeps it in one of these two places:"; echo "  /userdata/system/logs/"; echo "  /userdata/system/configs/emulationstation/"; echo; echo "An empty one is normal right after a wipe - it fills as EmulationStation runs."; exit 0; fi; echo "File: $f"; ls -l "$f" | awk '{print "Last written: " $6 " " $7 " " $8}'; echo; echo "=== Suspicious lines ==="; err=$(grep -iE "error|failed|warn|missing|not found|no such file|denied|unable|exception" "$f" | tail -15); if [ -n "$err" ]; then echo "$err"; else echo "None - EmulationStation logged nothing that looks like trouble."; fi; echo; echo "=== Last 30 lines, raw ==="; tail -30 "$f"; echo; echo "This is the file Batocera support asks for first. Use Copy to paste it into your post."'''
+command = '''f=""; for c in /userdata/system/configs/emulationstation/es_log.txt /userdata/system/logs/es_log.txt; do [ -s "$c" ] && { f=$c; break; }; done; if [ -z "$f" ]; then for c in $(find /userdata/system -maxdepth 4 -name "es_log*.txt" 2>/dev/null); do [ -s "$c" ] && { f=$c; break; }; done; fi; if [ -z "$f" ]; then echo "EmulationStation is not writing a log on this box right now."; echo; echo "Turn it on, then run this button again:"; echo "  MAIN MENU > SYSTEM SETTINGS > FRONTEND DEVELOPER SETTINGS > LOG LEVEL"; echo "  set it to debug, then use the \"Restart the menu\" button."; echo; echo "=== Logs that DO exist right now ==="; out=$(ls -lt /userdata/system/logs/ 2>/dev/null | tail -n +2 | head -12); [ -n "$out" ] && echo "$out" || echo "None - /userdata/system/logs/ is empty or missing."; exit 0; fi; echo "File: $f"; ls -l "$f" | awk '{print "Last written: " $6 " " $7 " " $8}'; echo; echo "=== Suspicious lines ==="; err=$(grep -iE "error|failed|warn|missing|not found|no such file|denied|unable|exception" "$f" | tail -15); if [ -n "$err" ]; then echo "$err"; else echo "None - EmulationStation logged nothing that looks like trouble."; fi; echo; echo "=== Last 30 lines, raw ==="; tail -30 "$f"; echo; echo "This is the file Batocera support asks for first. Use Copy to paste it into your post."'''
 icon_name = "journal-text"
 color = "#ffbe6f"
 show_output = true
@@ -87,6 +87,18 @@ show_output = true
 category = "Batocera"
 os = "linux"
 tooltip = "Which pads Batocera actually sees, by name, plus the battery level of a wireless one when the kernel reports it. The first thing to check when a controller does nothing in a game."
+
+[[button]]
+id = "bat-065"
+name = "Disconnect the wireless pads"
+command = '''command -v bluetoothctl >/dev/null 2>&1 || { echo "bluetoothctl is not on this machine, so wireless devices cannot be disconnected from here."; exit 1; }; macs=$(bluetoothctl devices Connected 2>/dev/null | awk '/^Device /{print $2}'); if [ -z "$macs" ]; then macs=$(bluetoothctl paired-devices 2>/dev/null | awk '/^Device /{print $2}' | while read -r m; do bluetoothctl info "$m" 2>/dev/null | grep -qi "connected: yes" && echo "$m"; done); fi; if [ -z "$macs" ]; then echo "No wireless device is connected right now."; echo; echo "A USB pad cannot be switched off this way - unplug it."; exit 0; fi; for m in $macs; do name=$(bluetoothctl info "$m" 2>/dev/null | sed -n "s/^[[:space:]]*Name: //p" | head -1); echo "Disconnecting ${name:-$m}"; bluetoothctl disconnect "$m" >/dev/null 2>&1; done; sleep 3; left=$(bluetoothctl devices Connected 2>/dev/null | awk '/^Device /{print $2}'); echo; if [ -z "$left" ]; then echo "Done - a pad powers itself off a few seconds after losing the connection."; else echo "Still connected:"; for m in $left; do n=$(bluetoothctl info "$m" 2>/dev/null | sed -n "s/^[[:space:]]*Name: //p" | head -1); echo "  ${n:-$m}"; done; echo "Hold its home button down, or wait for it to sleep on its own."; fi'''
+icon_name = "plug"
+color = "#ffa348"
+show_output = true
+confirm_before_run = true
+category = "Batocera"
+os = "linux"
+tooltip = "Switches off every Bluetooth device connected to the box - pads left on under the sofa stop draining their battery, and a pad stuck in a game lets go. Turn one back on with its home button. This also drops a Bluetooth headset if one is connected; a USB pad is unaffected."
 
 [[button]]
 id = "bat-070"
