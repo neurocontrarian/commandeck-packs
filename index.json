@@ -5,7 +5,7 @@
     {
       "pack_id": "batocera",
       "name": "Batocera",
-      "description": "The retro gaming box under the TV, answered from your desk or your phone: why a game refused to start, what fills the disk, which pads are seen - plus close a stuck game, rescue a black screen and shut down cleanly.",
+      "description": "The retro gaming box under the TV, answered from your desk or your phone: which game is running, why one refused to start, what fills the disk, which pads are seen - plus close a stuck game, rescue a black screen and shut down cleanly.",
       "os": "linux",
       "tags": [
         "batocera",
@@ -14,7 +14,7 @@
         "ssh",
         "diagnostics"
       ],
-      "pack_ver": "1.0.0",
+      "pack_ver": "1.0.1",
       "path": "linux/batocera/pack.toml",
       "sig": "linux/batocera/pack.sig",
       "signed": true
