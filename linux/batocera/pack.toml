@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "batocera"
 name = "Batocera"
-pack_ver = "1.0.4"
+pack_ver = "1.0.5"
 os = "linux"
 category = "Batocera"
 description = "The retro gaming box under the TV, answered from your desk or your phone: which game is running, why one refused to start, what fills the disk, which pads are seen - plus close a stuck game, rescue a black screen and shut down cleanly."
@@ -45,6 +45,17 @@ os = "linux"
 tooltip = "The log of the menu itself - the one Batocera support asks for first. Scraping, a system that will not appear, a theme that breaks, a slow start: it is written here, not in the launch log."
 
 [[button]]
+id = "bat-026"
+name = "Watch a game launch live"
+command = '''f=/userdata/system/logs/es_launch_stderr.log; echo "Start a game on the TV now - whatever it writes appears below."; echo "Press Ctrl+C when you have seen enough."; echo; [ -e "$f" ] || : > "$f" 2>/dev/null; tail -n 20 -f "$f"'''
+icon_name = "activity"
+color = "#ffbe6f"
+execution_mode = "terminal"
+category = "Batocera"
+os = "linux"
+tooltip = "Opens a terminal that keeps printing as a game starts, so you watch the failure happen instead of reading about it afterwards. Ctrl+C closes it. Desktop only - a phone has no terminal to open."
+
+[[button]]
 id = "bat-030"
 name = "Is a game running right now?"
 command = '''game=""; for p in /proc/[0-9]*; do [ -r "$p/cmdline" ] || continue; c=$(tr '\0' '\n' < "$p/cmdline" 2>/dev/null | grep -m1 "^/userdata/roms/"); if [ -n "$c" ]; then game="$c"; break; fi; done; if [ -n "$game" ]; then sys=$(echo "$game" | cut -d/ -f4); title=$(basename "$game" | sed 's/\.[^.]*$//'); echo "Yes - a game is running:"; echo; echo "  Game:   $title"; echo "  System: $sys"; elif pgrep -f "[r]etroarch" >/dev/null 2>&1 || pgrep -f "[e]mulatorlauncher" >/dev/null 2>&1; then echo "An emulator is running, but its game file is not one I can name."; else echo "No game running - the box is sitting in the EmulationStation menu."; fi'''
@@ -76,6 +87,17 @@ show_output = true
 category = "Batocera"
 os = "linux"
 tooltip = "Before buying a bigger disk, see which console is actually taking the room."
+
+[[button]]
+id = "bat-055"
+name = "Browse the disk (ncdu)"
+command = '''command -v ncdu >/dev/null 2>&1 || { echo "ncdu is not part of this Batocera build, and Batocera is read-only outside /userdata, so it cannot be installed."; echo "Use the \"Which systems eat my disk?\" button instead."; exit 1; }; ncdu /userdata'''
+icon_name = "folder2"
+color = "#8ff0a4"
+execution_mode = "terminal"
+category = "Batocera"
+os = "linux"
+tooltip = "Walk through /userdata folder by folder with the arrow keys and delete what you no longer want, instead of reading a list of sizes. Desktop only - a phone has no terminal to open."
 
 [[button]]
 id = "bat-060"
@@ -147,6 +169,17 @@ confirm_before_run = true
 category = "Batocera"
 os = "linux"
 tooltip = "Second step when the interface itself is stuck, or after adding ROMs so they appear. Lighter than a reboot - anything being played is closed."
+
+[[button]]
+id = "bat-110"
+name = "Live monitor (htop)"
+command = '''command -v htop >/dev/null 2>&1 && exec htop; command -v top >/dev/null 2>&1 && exec top; echo "Neither htop nor top is on this Batocera build."; echo "Use the \"Batocera system info\" button for a one-shot summary."; exit 1'''
+icon_name = "cpu"
+color = "#8ff0a4"
+execution_mode = "terminal"
+category = "Batocera"
+os = "linux"
+tooltip = "CPU, memory and processes updating live while a game runs - the way to see a slowdown as it happens. Falls back to top when htop is absent. Desktop only - a phone has no terminal to open."
 
 [[button]]
 id = "bat-130"
