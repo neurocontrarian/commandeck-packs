@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "jellyfin-systemd"
 name = "Jellyfin (system install)"
-pack_ver = "1.0.10"
+pack_ver = "1.0.11"
 os = "linux"
 category = "Jellyfin"
 description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin installed on the machine itself and managed by systemctl."
@@ -59,13 +59,13 @@ tooltip = "The raw last 60 lines, unfiltered. Use it when the filtered buttons a
 [[button]]
 id = "jfs-055"
 name = "Follow the log live"
-command = '''echo "Reproduce the problem now - Jellyfin writes here as it happens."; echo "Press Ctrl+C when you have seen enough."; echo; sudo journalctl -u jellyfin -f -n 40'''
+command = '''echo "Reproduce the problem now - Jellyfin writes here as it happens."; echo "Press Ctrl+C - or just leave this view - when you have seen enough."; echo; sudo journalctl -u jellyfin -f -n 40'''
 icon_name = "activity"
 color = "#ffbe6f"
 execution_mode = "terminal"
 category = "Jellyfin"
 os = "linux"
-tooltip = "The log button shows what already happened; this one keeps printing while you press play, so a stutter or a transcode failure is visible at the moment it occurs. Ctrl+C closes it. Desktop only - a phone has no terminal to open."
+tooltip = "The log button shows what already happened; this one keeps printing while you press play, so a stutter or a transcode failure is visible at the moment it occurs. Ctrl+C closes it."
 
 [[button]]
 id = "jfs-060"
