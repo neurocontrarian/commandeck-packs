@@ -277,7 +277,7 @@
         "selfhosted",
         "diagnostics"
       ],
-      "pack_ver": "1.0.1",
+      "pack_ver": "1.0.2",
       "path": "linux/plex-systemd/pack.toml",
       "sig": "linux/plex-systemd/pack.sig",
       "signed": true
