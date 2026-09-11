@@ -44,7 +44,7 @@
         "defaults",
         "essentials"
       ],
-      "pack_ver": "1.7.0",
+      "pack_ver": "1.7.1",
       "path": "linux/essentials/pack.toml",
       "sig": "linux/essentials/pack.sig",
       "signed": true
@@ -58,7 +58,7 @@
         "defaults",
         "hardware"
       ],
-      "pack_ver": "1.7.0",
+      "pack_ver": "1.7.1",
       "path": "linux/hardware/pack.toml",
       "sig": "linux/hardware/pack.sig",
       "signed": true
@@ -125,125 +125,9 @@
         "defaults",
         "network"
       ],
-      "pack_ver": "1.7.0",
+      "pack_ver": "1.7.1",
       "path": "linux/network/pack.toml",
       "sig": "linux/network/pack.sig",
-      "signed": true
-    },
-    {
-      "pack_id": "macos-dev-tools",
-      "name": "Developer Tools",
-      "description": "Git, Python and Node status at a glance. For people who code on the box, not just run a server.",
-      "os": "macos",
-      "tags": [
-        "git",
-        "python",
-        "node",
-        "development"
-      ],
-      "pack_ver": "1.0.0",
-      "path": "macos/dev-tools/pack.toml",
-      "sig": "macos/dev-tools/pack.sig",
-      "signed": true
-    },
-    {
-      "pack_id": "macos-essentials",
-      "name": "macOS Essentials",
-      "description": "Core system info, logs and maintenance actions.",
-      "os": "macos",
-      "tags": [
-        "defaults",
-        "essentials"
-      ],
-      "pack_ver": "1.7.0",
-      "path": "macos/essentials/pack.toml",
-      "sig": "macos/essentials/pack.sig",
-      "signed": true
-    },
-    {
-      "pack_id": "macos-hardware",
-      "name": "Hardware",
-      "description": "Disk, memory, CPU, GPU and other hardware checks.",
-      "os": "macos",
-      "tags": [
-        "defaults",
-        "hardware"
-      ],
-      "pack_ver": "1.7.0",
-      "path": "macos/hardware/pack.toml",
-      "sig": "macos/hardware/pack.sig",
-      "signed": true
-    },
-    {
-      "pack_id": "macos-network",
-      "name": "Network",
-      "description": "Interfaces, ports and connection diagnostics.",
-      "os": "macos",
-      "tags": [
-        "defaults",
-        "network"
-      ],
-      "pack_ver": "1.7.0",
-      "path": "macos/network/pack.toml",
-      "sig": "macos/network/pack.sig",
-      "signed": true
-    },
-    {
-      "pack_id": "windows-dev-tools",
-      "name": "Developer Tools",
-      "description": "Git, Python and Node status at a glance. For people who code on the box, not just run a server.",
-      "os": "windows",
-      "tags": [
-        "git",
-        "python",
-        "node",
-        "development"
-      ],
-      "pack_ver": "1.0.0",
-      "path": "windows/dev-tools/pack.toml",
-      "sig": "windows/dev-tools/pack.sig",
-      "signed": true
-    },
-    {
-      "pack_id": "windows-essentials",
-      "name": "Windows Essentials",
-      "description": "Core system info, logs and maintenance actions.",
-      "os": "windows",
-      "tags": [
-        "defaults",
-        "essentials"
-      ],
-      "pack_ver": "1.7.0",
-      "path": "windows/essentials/pack.toml",
-      "sig": "windows/essentials/pack.sig",
-      "signed": true
-    },
-    {
-      "pack_id": "windows-hardware",
-      "name": "Hardware",
-      "description": "Disk, memory, CPU, GPU and other hardware checks.",
-      "os": "windows",
-      "tags": [
-        "defaults",
-        "hardware"
-      ],
-      "pack_ver": "1.7.0",
-      "path": "windows/hardware/pack.toml",
-      "sig": "windows/hardware/pack.sig",
-      "signed": true
-    },
-    {
-      "pack_id": "windows-network",
-      "name": "Network",
-      "description": "Interfaces, ports and connection diagnostics.",
-      "os": "windows",
-      "tags": [
-        "defaults",
-        "network"
-      ],
-      "pack_ver": "1.7.0",
-      "path": "windows/network/pack.toml",
-      "sig": "windows/network/pack.sig",
       "signed": true
     },
     {
@@ -280,6 +164,122 @@
       "pack_ver": "1.0.3",
       "path": "linux/plex-systemd/pack.toml",
       "sig": "linux/plex-systemd/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "macos-dev-tools",
+      "name": "Developer Tools",
+      "description": "Git, Python and Node status at a glance. For people who code on the box, not just run a server.",
+      "os": "macos",
+      "tags": [
+        "git",
+        "python",
+        "node",
+        "development"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "macos/dev-tools/pack.toml",
+      "sig": "macos/dev-tools/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "macos-essentials",
+      "name": "macOS Essentials",
+      "description": "Core system info, logs and maintenance actions.",
+      "os": "macos",
+      "tags": [
+        "defaults",
+        "essentials"
+      ],
+      "pack_ver": "1.7.1",
+      "path": "macos/essentials/pack.toml",
+      "sig": "macos/essentials/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "macos-hardware",
+      "name": "Hardware",
+      "description": "Disk, memory, CPU, GPU and other hardware checks.",
+      "os": "macos",
+      "tags": [
+        "defaults",
+        "hardware"
+      ],
+      "pack_ver": "1.7.1",
+      "path": "macos/hardware/pack.toml",
+      "sig": "macos/hardware/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "macos-network",
+      "name": "Network",
+      "description": "Interfaces, ports and connection diagnostics.",
+      "os": "macos",
+      "tags": [
+        "defaults",
+        "network"
+      ],
+      "pack_ver": "1.7.1",
+      "path": "macos/network/pack.toml",
+      "sig": "macos/network/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "windows-dev-tools",
+      "name": "Developer Tools",
+      "description": "Git, Python and Node status at a glance. For people who code on the box, not just run a server.",
+      "os": "windows",
+      "tags": [
+        "git",
+        "python",
+        "node",
+        "development"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "windows/dev-tools/pack.toml",
+      "sig": "windows/dev-tools/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "windows-essentials",
+      "name": "Windows Essentials",
+      "description": "Core system info, logs and maintenance actions.",
+      "os": "windows",
+      "tags": [
+        "defaults",
+        "essentials"
+      ],
+      "pack_ver": "1.7.1",
+      "path": "windows/essentials/pack.toml",
+      "sig": "windows/essentials/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "windows-hardware",
+      "name": "Hardware",
+      "description": "Disk, memory, CPU, GPU and other hardware checks.",
+      "os": "windows",
+      "tags": [
+        "defaults",
+        "hardware"
+      ],
+      "pack_ver": "1.7.1",
+      "path": "windows/hardware/pack.toml",
+      "sig": "windows/hardware/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "windows-network",
+      "name": "Network",
+      "description": "Interfaces, ports and connection diagnostics.",
+      "os": "windows",
+      "tags": [
+        "defaults",
+        "network"
+      ],
+      "pack_ver": "1.7.1",
+      "path": "windows/network/pack.toml",
+      "sig": "windows/network/pack.sig",
       "signed": true
     }
   ]
