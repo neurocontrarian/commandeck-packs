@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "plex-docker"
 name = "Plex (Docker)"
-pack_ver = "1.0.2"
+pack_ver = "1.0.3"
 os = "linux"
 category = "Plex"
 description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update, rescan a library and check the database. For a Plex Media Server running in a Docker container."
@@ -49,12 +49,12 @@ tooltip = "Plex does not write its log where Docker can see it - this reads Plex
 
 [[button]]
 id = "plx-050"
-name = "Full recent log"
-command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; [ -n "$SUP" ] || { echo "Plex's own data folder was not found inside the container, so its log cannot be read."; exit 1; }; raw=$(sudo docker exec "$P" tail -n 4000 "$SUP/Logs/Plex Media Server.log") || exit $?; [ -n "$raw" ] || { echo "Plex's log file is there but empty."; exit 0; }; total=$(printf '%s\n' "$raw" | wc -l); out=$(printf '%s\n' "$raw" | grep -v ' DEBUG - '); kept=$(printf '%s\n' "$out" | grep -c .); if [ "$kept" -gt 0 ]; then printf '%s\n' "$out" | tail -60; echo; echo "(Plex wrote $total lines; $((total - kept)) of them are DEBUG bookkeeping - scans, network, web requests - and are hidden. What you see above is everything it considered worth reporting.)"; else echo "Plex reported nothing but DEBUG bookkeeping in its last $total lines - no warning, no error, nothing it considered worth reporting."; echo; echo "Here are the last 30 of those raw lines anyway, for a forum post:"; echo; printf '%s\n' "$raw" | tail -30; fi; exit 0'''
+name = "What Plex reported"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; [ -n "$SUP" ] || { echo "Plex's own data folder was not found inside the container, so its log cannot be read."; exit 1; }; raw=$(sudo docker exec "$P" tail -n 4000 "$SUP/Logs/Plex Media Server.log") || exit $?; [ -n "$raw" ] || { echo "Plex's log file is there but empty."; exit 0; }; total=$(printf '%s\n' "$raw" | wc -l); out=$(printf '%s\n' "$raw" | grep -v ' DEBUG - '); kept=$(printf '%s\n' "$out" | grep -c .); echo "=== What Plex chose to report ($kept of its last $total lines) ==="; echo; if [ "$kept" -gt 0 ]; then printf '%s\n' "$out" | tail -60; else echo "Nothing. No error, no warning, no notice - Plex had nothing to say about itself."; fi; echo; echo "=== The raw end of the file, whatever it contains (last 20 lines) ==="; echo; printf '%s\n' "$raw" | tail -20; echo; echo "The rest is DEBUG: Plex narrates every web request, every network event and every timeline it tidies. Nothing is removed from the file - this button just puts the useful part first."; exit 0'''
 icon_name = "journal-text"
 color = "#ffa348"
 show_output = true
-tooltip = "The raw last 60 lines, unfiltered. Use it when the filtered button is not enough - or to copy/paste into your AI assistant or a forum post."
+tooltip = "Plex writes thousands of DEBUG lines that narrate its own housekeeping. This puts the lines it actually meant as a report first, then the raw end of the file - so you can copy/paste either into your AI assistant or a forum post."
 
 [[button]]
 id = "plx-055"

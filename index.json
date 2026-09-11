@@ -258,7 +258,7 @@
         "selfhosted",
         "diagnostics"
       ],
-      "pack_ver": "1.0.2",
+      "pack_ver": "1.0.3",
       "path": "linux/plex-docker/pack.toml",
       "sig": "linux/plex-docker/pack.sig",
       "signed": true
