@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "jellyfin-systemd"
 name = "Jellyfin (system install)"
-pack_ver = "1.0.15"
+pack_ver = "1.0.16"
 os = "linux"
 category = "Jellyfin"
 description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update and cache cleanup. For a Jellyfin installed on the machine itself and managed by systemctl."
@@ -80,7 +80,7 @@ tooltip = "Watches the drives for 10 seconds and names the processes that actual
 [[button]]
 id = "jfs-070"
 name = "Space & transcode cache"
-command = '''echo "=== Disks ==="; df -h /var/lib/jellyfin 2>/dev/null || df -h; echo; echo "=== Transcode cache size ==="; out=$(sudo sh -c 'for d in /var/cache/jellyfin/transcodes /var/lib/jellyfin/transcodes /tmp/jellyfin-transcodes; do [ -d "$d" ] && du -sh "$d"; done; :') || exit $?; [ -n "$out" ] && echo "$out" || echo "No transcode folder found - nothing has been transcoded on this install yet."'''
+command = '''echo "=== The disks of this machine ==="; rows=$(df -h -x tmpfs -x devtmpfs -x squashfs -x overlay 2>/dev/null | tail -n +2); df -h / | head -1; [ -n "$rows" ] && printf '%s\n' "$rows" || df -h; warn=$(printf '%s\n' "$rows" | awk '{u=$5; gsub(/%/,"",u); if (u+0 >= 90 && u+0 > m) { m=u+0; avail=$4; where=$6 } } END { if (m) print m"|"avail"|"where }'); case "$warn" in ?*) pct=${warn%%|*}; rest=${warn#*|}; left=${rest%%|*}; where=${rest##*|}; echo; echo "WARNING: $where is $pct% full - only $left left."; echo "Jellyfin needs room to convert video and to write its database. When the disk fills, playback fails and a library scan can damage the catalogue. Free some space before anything else.";; esac; echo; echo "=== Transcode cache size ==="; out=$(sudo sh -c 'for d in /var/cache/jellyfin/transcodes /var/lib/jellyfin/transcodes /tmp/jellyfin-transcodes; do [ -d "$d" ] && du -sh "$d"; done; :') || exit $?; [ -n "$out" ] && echo "$out" || echo "No transcode folder found - nothing has been transcoded on this install yet."'''
 icon_name = "folder2"
 color = "#57e389"
 show_output = true
@@ -119,7 +119,7 @@ tooltip = "First move when something is stuck. Anyone watching will be interrupt
 [[button]]
 id = "jfs-110"
 name = "Update Jellyfin"
-command = '''command -v apt-get >/dev/null || { echo "This machine does not use apt - update Jellyfin with your own package manager."; exit 0; }; sudo apt-get update && sudo apt-get install --only-upgrade -y jellyfin jellyfin-server jellyfin-web || exit $?; echo; sleep 3; systemctl status jellyfin --no-pager | head -8'''
+command = '''command -v apt-get >/dev/null || { echo "This machine does not use apt - update Jellyfin with your own package manager."; exit 0; }; sudo apt-get update && sudo apt-get install --only-upgrade -y jellyfin jellyfin-server jellyfin-web || exit $?; echo; sleep 4; if systemctl is-active --quiet jellyfin; then echo "Jellyfin is running."; else echo "Jellyfin is NOT running after the update - look at the log."; systemctl status jellyfin --no-pager 2>&1 | head -12; exit 1; fi'''
 icon_name = "cloud-download"
 color = "#62a0ea"
 show_output = true

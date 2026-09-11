@@ -92,7 +92,7 @@
         "selfhosted",
         "diagnostics"
       ],
-      "pack_ver": "1.0.13",
+      "pack_ver": "1.0.14",
       "path": "linux/jellyfin-docker/pack.toml",
       "sig": "linux/jellyfin-docker/pack.sig",
       "signed": true
@@ -111,7 +111,7 @@
         "selfhosted",
         "diagnostics"
       ],
-      "pack_ver": "1.0.15",
+      "pack_ver": "1.0.16",
       "path": "linux/jellyfin-systemd/pack.toml",
       "sig": "linux/jellyfin-systemd/pack.sig",
       "signed": true
@@ -261,6 +261,25 @@
       "pack_ver": "1.0.4",
       "path": "linux/plex-docker/pack.toml",
       "sig": "linux/plex-docker/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "plex-systemd",
+      "name": "Plex (system install)",
+      "description": "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update, look for new films and check the database. For a Plex installed on the machine itself from Plex's own repository.",
+      "os": "linux",
+      "tags": [
+        "plex",
+        "systemd",
+        "lxc",
+        "proxmox",
+        "media-server",
+        "selfhosted",
+        "diagnostics"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "linux/plex-systemd/pack.toml",
+      "sig": "linux/plex-systemd/pack.sig",
       "signed": true
     }
   ]
