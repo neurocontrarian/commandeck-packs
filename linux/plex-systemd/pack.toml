@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "plex-systemd"
 name = "Plex (system install)"
-pack_ver = "1.0.0"
+pack_ver = "1.0.1"
 os = "linux"
 category = "Plex"
 description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update, look for new films and check the database. For a Plex installed on the machine itself from Plex's own repository."
@@ -32,7 +32,7 @@ tooltip = "Noisy drives or a hot processor? This answers it: a video being conve
 [[button]]
 id = "plxs-030"
 name = "Resources right now"
-command = '''echo "=== What Plex is using ==="; out=$(ps -eo pcpu,pmem,rss,comm --no-headers | grep -i 'plex' | awk '{printf "%6s%% CPU  %5s%% RAM  %6d MB  %s\n", $1, $2, $3/1024, $4}'); [ -n "$out" ] && printf '%s\n' "$out" || echo "No Plex process is running at all."; echo; echo "=== The whole machine ==="; uptime; echo; free -h 2>/dev/null | head -2 || echo "(free is not available here)"'''
+command = '''pids=$(pgrep -f "[P]lex" 2>/dev/null | head -30); [ -n "$pids" ] || { echo "No Plex process is running at all."; exit 0; }; tick=$(getconf CLK_TCK 2>/dev/null); [ -n "$tick" ] || tick=100; read_cpu() { for p in $1; do v=$(awk '{ sub(/^[0-9]+ \(.*\) /, ""); print $12 + $13 }' /proc/$p/stat 2>/dev/null); [ -n "$v" ] && echo "$p $v"; done; }; a=$(read_cpu "$pids"); sleep 1; b=$(read_cpu "$pids"); echo "=== What Plex is using right now (measured over one second) ==="; echo; out=$(for p in $pids; do c1=$(printf '%s\n' "$a" | awk -v p="$p" '$1==p {print $2}'); c2=$(printf '%s\n' "$b" | awk -v p="$p" '$1==p {print $2}'); [ -n "$c1" ] && [ -n "$c2" ] || continue; rss=$(awk '/^VmRSS:/ {print $2}' /proc/$p/status 2>/dev/null); name=$(tr '\0' ' ' < /proc/$p/cmdline 2>/dev/null | cut -c1-90); [ -n "$name" ] || name=$(cat /proc/$p/comm 2>/dev/null); echo "$c1 $c2 ${rss:-0} $name"; done | awk -v tick="$tick" '{ cpu=($2-$1)*100/tick; rss=$3/1024; $1=""; $2=""; $3=""; sub(/^ +/,""); printf "%6.1f%% CPU  %6d MB  %s\n", cpu, rss, $0 }' | sort -rn); [ -n "$out" ] && printf '%s\n' "$out" || echo "The Plex processes vanished while they were being measured."; echo; echo "=== The whole machine ==="; uptime; echo; free -h 2>/dev/null | head -2 || echo "(free is not available here)"'''
 icon_name = "activity"
 color = "#8ff0a4"
 show_output = true
@@ -50,7 +50,7 @@ tooltip = "Plex keeps its own log file - the system journal only knows when the 
 [[button]]
 id = "plxs-050"
 name = "What Plex reported"
-command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; sudo test -f "$SUP/Logs/Plex Media Server.log" || { echo "Plex's log file is not where a repository install puts it. Was Plex installed some other way?"; exit 1; }; raw=$(sudo tail -n 4000 "$SUP/Logs/Plex Media Server.log") || exit $?; [ -n "$raw" ] || { echo "Plex's log file is there but empty."; exit 0; }; total=$(printf '%s\n' "$raw" | wc -l); said=$(printf '%s\n' "$raw" | grep -v ' DEBUG - '); kept=$(printf '%s\n' "$said" | grep -c .); if [ "$kept" -gt 0 ]; then grouped=$(printf '%s\n' "$said" | awk '{ k=$0; sub(/^[^]]*\] /,"",k); sub(/\[Req#[^]]*\] /,"",k); if (!(k in n)) { order[++c]=k } n[k]++ } END { for (i=1; i<=c; i++) { k=order[i]; printf "%s%s\n", k, (n[k]>1 ? sprintf("   (repeated %d times)", n[k]) : "") } }'); distinct=$(printf '%s\n' "$grouped" | grep -c .); echo "=== What Plex reported, each message once ($distinct different ones in $kept lines) ==="; echo; printf '%s\n' "$grouped" | tail -40; else echo "=== What Plex reported ==="; echo; echo "Nothing. No error, no warning, no notice."; fi; echo; echo "=== The raw end of the file, whatever it contains (last 20 lines) ==="; echo; printf '%s\n' "$raw" | tail -20; echo; echo "Read from Plex's last $total lines. Timestamps and request numbers are dropped when a message repeats, otherwise one harmless warning said 140 times buries the one error that matters. The rest is DEBUG - Plex narrating its own housekeeping. Nothing is removed from the file itself."'''
+command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; sudo test -f "$SUP/Logs/Plex Media Server.log" || { echo "Plex's log file is not where a repository install puts it. Was Plex installed some other way?"; exit 1; }; raw=$(sudo tail -n 4000 "$SUP/Logs/Plex Media Server.log") || exit $?; [ -n "$raw" ] || { echo "Plex's log file is there but empty."; exit 0; }; total=$(printf '%s\n' "$raw" | wc -l); said=$(printf '%s\n' "$raw" | grep -v ' DEBUG - ' | grep -vE 'Request: \[|Completed: \[|Setting container serialization'); kept=$(printf '%s\n' "$said" | grep -c .); if [ "$kept" -gt 0 ]; then grouped=$(printf '%s\n' "$said" | awk '{ k=$0; sub(/^[^]]*\] /,"",k); sub(/\[Req#[^]]*\] /,"",k); if (!(k in n)) { order[++c]=k } n[k]++ } END { for (i=1; i<=c; i++) { k=order[i]; printf "%s%s\n", k, (n[k]>1 ? sprintf("   (repeated %d times)", n[k]) : "") } }'); distinct=$(printf '%s\n' "$grouped" | grep -c .); echo "=== What Plex reported, each message once ($distinct different ones in $kept lines) ==="; echo; printf '%s\n' "$grouped" | tail -40; else echo "=== What Plex reported ==="; echo; echo "Nothing. No error, no warning, no notice."; fi; echo; echo "=== The raw end of the file, whatever it contains (last 20 lines) ==="; echo; printf '%s\n' "$raw" | tail -20; echo; echo "Read from Plex's last $total lines. Timestamps and request numbers are dropped when a message repeats, otherwise one harmless warning said 140 times buries the one error that matters. The rest is DEBUG - Plex narrating its own housekeeping. Nothing is removed from the file itself."'''
 icon_name = "journal-text"
 color = "#ffa348"
 show_output = true
@@ -59,7 +59,7 @@ tooltip = "Plex writes thousands of DEBUG lines that narrate its own housekeepin
 [[button]]
 id = "plxs-055"
 name = "Follow the log live"
-command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; sudo test -f "$SUP/Logs/Plex Media Server.log" || { echo "Plex's log file is not where a repository install puts it."; exit 1; }; echo "Reproduce the problem now - Plex writes here as it happens."; echo "Press Ctrl+C - or just leave this view - when you have seen enough."; echo; sudo tail -f -n 200 "$SUP/Logs/Plex Media Server.log" | grep -v --line-buffered ' DEBUG - \''''
+command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; sudo test -f "$SUP/Logs/Plex Media Server.log" || { echo "Plex's log file is not where a repository install puts it."; exit 1; }; echo "Reproduce the problem now - Plex writes here as it happens."; echo "Press Ctrl+C - or just leave this view - when you have seen enough."; echo; sudo tail -f -n 200 "$SUP/Logs/Plex Media Server.log" | grep -v --line-buffered " DEBUG - "'''
 icon_name = "activity"
 color = "#ffbe6f"
 execution_mode = "terminal"
@@ -100,7 +100,7 @@ tooltip = "The reasons hardware conversion silently falls back to the processor,
 [[button]]
 id = "plxs-090"
 name = "Is something else holding Plex's port?"
-command = '''export PATH="$PATH:/usr/sbin:/sbin"; if command -v ss >/dev/null; then out=$(sudo ss -tlnp 2>/dev/null | grep ':32400'); elif command -v netstat >/dev/null; then out=$(sudo netstat -tlnp 2>/dev/null | grep ':32400'); else echo "Neither ss nor netstat is installed here, so the port cannot be checked."; exit 0; fi; if [ -z "$out" ]; then echo "Nothing is listening on port 32400."; echo; echo "If Plex is supposed to be running, that is the problem itself: it started and gave up, or it never started. Look at 'What Plex reported'."; exit 0; fi; printf '%s\n' "$out"; echo; if printf '%s' "$out" | grep -qi 'plex'; then echo "That is Plex itself - the port is in the right hands."; else echo "Something OTHER than Plex is holding port 32400. Plex cannot start while that program has it."; fi'''
+command = '''export PATH="$PATH:/usr/sbin:/sbin"; raw=$(ss -tln 2>/dev/null); [ -n "$raw" ] || raw=$(netstat -tln 2>/dev/null); [ -n "$raw" ] || { echo "Neither ss nor netstat is installed here, so the port cannot be checked. Install one with: sudo apt install iproute2"; exit 1; }; line=$(printf '%s\n' "$raw" | grep ':32400'); if [ -z "$line" ]; then echo "Nothing is listening on port 32400."; echo; echo "If Plex is supposed to be running, that is the problem itself: it started and gave up, or it never started. Look at button 5, What Plex reported."; exit 0; fi; printf '%s\n' "$line"; echo; named=$(sudo ss -tlnp | grep ':32400'); if printf '%s' "$named" | grep -qi 'plex'; then echo "That is Plex itself - the port is in the right hands."; elif [ -n "$named" ]; then echo "Something OTHER than Plex is holding port 32400. Plex cannot start while that program has it:"; echo; printf '%s\n' "$named"; else echo "Something is listening there, but this machine would not say which program - so this button cannot tell you whether it is Plex."; fi'''
 icon_name = "ethernet"
 color = "#99c1f1"
 show_output = true
