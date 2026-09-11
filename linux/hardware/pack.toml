@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "linux-hardware"
 name = "Hardware"
-pack_ver = "1.7.3"
+pack_ver = "1.7.4"
 os = "linux"
 category = "Hardware"
 description = "Disk, memory, CPU, GPU and other hardware checks."
@@ -70,7 +70,7 @@ os = "linux"
 [[button]]
 id = "largest-directories"
 name = "Largest Directories"
-command = "sudo true || exit $?; raw=$(sudo du -sx --block-size=1M /* /.[!.]* 2>/dev/null); [ -n \"$raw\" ] || { echo \"Nothing could be measured on this disk.\"; exit 1; }; echo \"=== The biggest folders on this disk ===\"; echo; printf '%s\\n' \"$raw\" | sort -rn | head -15 | awk '{ mb=$1; $1=\"\"; sub(/^ +/,\"\"); if (mb >= 1024) printf \"%8.1f GB  %s\\n\", mb/1024, $0; else printf \"%8d MB  %s\\n\", mb, $0 }'; seen=$(printf '%s\\n' \"$raw\" | awk '{s+=$1} END {print s+0}'); used=$(df -BM --output=used / 2>/dev/null | tail -1 | tr -dc '0-9'); [ -n \"$used\" ] && [ \"$used\" -gt 0 ] || exit 0; gap=$((used - seen)); [ \"$gap\" -gt 1024 ] && [ \"$gap\" -gt $((used / 10)) ] || exit 0; echo; echo \"$((gap / 1024)) GB of this disk is used by files the list above cannot see.\"; echo \"Two usual reasons: files written into a folder BEFORE a drive was mounted on top of it - they stay on this disk, hidden underneath - or files deleted while a program still holds them open, which a restart releases.\"; exit 0"
+command = "sudo true || exit $?; raw=$(sudo du -sx --block-size=1M /* /.[!.]* 2>/dev/null); [ -n \"$raw\" ] || { echo \"Nothing could be measured on this disk.\"; exit 1; }; echo \"=== The biggest folders on this disk ===\"; echo; printf '%s\\n' \"$raw\" | sort -rn | head -15 | LC_ALL=C awk '{ mb=$1; $1=\"\"; sub(/^ +/,\"\"); if (mb >= 1024) printf \"%8.1f GB  %s\\n\", mb/1024, $0; else printf \"%8d MB  %s\\n\", mb, $0 }'; seen=$(printf '%s\\n' \"$raw\" | awk '{s+=$1} END {print s+0}'); used=$(df -BM --output=used / 2>/dev/null | tail -1 | tr -dc '0-9'); [ -n \"$used\" ] && [ \"$used\" -gt 0 ] || exit 0; gap=$((used - seen)); [ \"$gap\" -gt 1024 ] && [ \"$gap\" -gt $((used / 10)) ] || exit 0; echo; echo \"$((gap / 1024)) GB of this disk is used by files the list above cannot see.\"; echo \"Two usual reasons: files written into a folder BEFORE a drive was mounted on top of it - they stay on this disk, hidden underneath - or files deleted while a program still holds them open, which a restart releases.\"; exit 0"
 icon_name = "folder2"
 color = "#e5a50a"
 tooltip = "The 15 biggest folders on this disk, measured with administrator rights so nothing is skipped - plus a warning when the disk holds more than the folders add up to."
