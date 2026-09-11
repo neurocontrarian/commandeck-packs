@@ -1,0 +1,160 @@
+version = 1
+
+[pack]
+pack_id = "plex-systemd"
+name = "Plex (system install)"
+pack_ver = "1.0.0"
+os = "linux"
+category = "Plex"
+description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update, look for new films and check the database. For a Plex installed on the machine itself from Plex's own repository."
+requires = "Plex Media Server installed from Plex's Debian/RPM repository (service plexmediaserver), reached over SSH by a user allowed to run sudo. Running Plex in a Docker container? Install 'Plex (Docker)' instead - the commands are completely different."
+tags = ["plex", "systemd", "lxc", "proxmox", "media-server", "selfhosted", "diagnostics"]
+
+# ── Is it healthy? ────────────────────────────────────────────────────────
+[[button]]
+id = "plxs-010"
+name = "Is Plex running?"
+command = '''systemctl is-active --quiet plexmediaserver && { echo "Plex is running."; echo; systemctl show -p ActiveEnterTimestamp --value plexmediaserver | sed 's/^/Running since: /'; v=$(dpkg-query -W -f='${Version}' plexmediaserver 2>/dev/null); [ -n "$v" ] && echo "Version: $v"; exit 0; }; echo "Plex is NOT running."; echo; out=$(systemctl status plexmediaserver --no-pager 2>&1 | head -12); [ -n "$out" ] && printf '%s\n' "$out" || echo "The system knows no service called plexmediaserver - is Plex installed from Plex's repository on this machine?"'''
+icon_name = "info-circle"
+color = "#62a0ea"
+show_output = true
+tooltip = "Is the server up, since when, and which version - or, if it stopped, what the system says about why."
+
+[[button]]
+id = "plxs-020"
+name = "Why is Plex busy?"
+command = '''echo "=== Converting a video right now? ==="; line=$(ps -eo pcpu,args --no-headers | grep '[P]lex Transcoder' | head -1); if [ -n "$line" ]; then cpu=$(printf '%s' "$line" | awk '{print $1}'); src=$(printf '%s' "$line" | sed -n 's/.* -i \([^ ]*\).*/\1/p'); src=$(printf '%s' "$src" | tr -d '"'); src=${src##*/}; echo "Yes - Plex is converting a video right now."; [ -n "$src" ] && echo "  File: $src"; case "$cpu" in 0|0.0|"") : ;; *) echo "  CPU:  $cpu% for that one process";; esac; echo "  (Converting the picture is what makes a server sweat. If it happens on every play, the device asking for the film cannot read the original format.)"; else echo "No, nothing is being converted."; fi; echo; echo "=== Scanning the library right now? ==="; if ps -eo args --no-headers | grep -q '[P]lex Media Scanner'; then echo "Yes - a library scan is running."; else echo "No scanner running at this second (a scan can still be between files)."; fi'''
+icon_name = "cpu"
+color = "#f8e45c"
+show_output = true
+tooltip = "Noisy drives or a hot processor? This answers it: a video being converted, a library scan, or neither."
+
+[[button]]
+id = "plxs-030"
+name = "Resources right now"
+command = '''echo "=== What Plex is using ==="; out=$(ps -eo pcpu,pmem,rss,comm --no-headers | grep -i 'plex' | awk '{printf "%6s%% CPU  %5s%% RAM  %6d MB  %s\n", $1, $2, $3/1024, $4}'); [ -n "$out" ] && printf '%s\n' "$out" || echo "No Plex process is running at all."; echo; echo "=== The whole machine ==="; uptime; echo; free -h 2>/dev/null | head -2 || echo "(free is not available here)"'''
+icon_name = "activity"
+color = "#8ff0a4"
+show_output = true
+tooltip = "What the Plex processes are taking from the machine right now, and what the machine has left."
+
+[[button]]
+id = "plxs-040"
+name = "Recent errors"
+command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; sudo test -f "$SUP/Logs/Plex Media Server.log" || { echo "Plex's log file is not where a repository install puts it. Was Plex installed some other way (a Docker container, a NAS package)?"; exit 1; }; log=$(sudo tail -n 4000 "$SUP/Logs/Plex Media Server.log") || exit $?; errs=$(printf '%s\n' "$log" | grep ' ERROR - ' | awk '{ k=$0; sub(/^[^]]*\] /,"",k); sub(/\[Req#[^]]*\] /,"",k); if (!(k in n)) { order[++c]=k } n[k]++ } END { for (i=1; i<=c; i++) { k=order[i]; printf "%s%s\n", k, (n[k]>1 ? sprintf("   (repeated %d times)", n[k]) : "") } }' | tail -20); [ -n "$errs" ] && printf '%s\n' "$errs" || echo "No error in Plex's last 4000 log lines."'''
+icon_name = "exclamation-triangle"
+color = "#ffbe6f"
+show_output = true
+tooltip = "Plex keeps its own log file - the system journal only knows when the service started. This reads that file and keeps the errors, each one once."
+
+[[button]]
+id = "plxs-050"
+name = "What Plex reported"
+command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; sudo test -f "$SUP/Logs/Plex Media Server.log" || { echo "Plex's log file is not where a repository install puts it. Was Plex installed some other way?"; exit 1; }; raw=$(sudo tail -n 4000 "$SUP/Logs/Plex Media Server.log") || exit $?; [ -n "$raw" ] || { echo "Plex's log file is there but empty."; exit 0; }; total=$(printf '%s\n' "$raw" | wc -l); said=$(printf '%s\n' "$raw" | grep -v ' DEBUG - '); kept=$(printf '%s\n' "$said" | grep -c .); if [ "$kept" -gt 0 ]; then grouped=$(printf '%s\n' "$said" | awk '{ k=$0; sub(/^[^]]*\] /,"",k); sub(/\[Req#[^]]*\] /,"",k); if (!(k in n)) { order[++c]=k } n[k]++ } END { for (i=1; i<=c; i++) { k=order[i]; printf "%s%s\n", k, (n[k]>1 ? sprintf("   (repeated %d times)", n[k]) : "") } }'); distinct=$(printf '%s\n' "$grouped" | grep -c .); echo "=== What Plex reported, each message once ($distinct different ones in $kept lines) ==="; echo; printf '%s\n' "$grouped" | tail -40; else echo "=== What Plex reported ==="; echo; echo "Nothing. No error, no warning, no notice."; fi; echo; echo "=== The raw end of the file, whatever it contains (last 20 lines) ==="; echo; printf '%s\n' "$raw" | tail -20; echo; echo "Read from Plex's last $total lines. Timestamps and request numbers are dropped when a message repeats, otherwise one harmless warning said 140 times buries the one error that matters. The rest is DEBUG - Plex narrating its own housekeeping. Nothing is removed from the file itself."'''
+icon_name = "journal-text"
+color = "#ffa348"
+show_output = true
+tooltip = "Plex writes thousands of DEBUG lines that narrate its own housekeeping. This puts the lines it actually meant as a report first, then the raw end of the file - so you can copy/paste either into your AI assistant or a forum post."
+
+[[button]]
+id = "plxs-055"
+name = "Follow the log live"
+command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; sudo test -f "$SUP/Logs/Plex Media Server.log" || { echo "Plex's log file is not where a repository install puts it."; exit 1; }; echo "Reproduce the problem now - Plex writes here as it happens."; echo "Press Ctrl+C - or just leave this view - when you have seen enough."; echo; sudo tail -f -n 200 "$SUP/Logs/Plex Media Server.log" | grep -v --line-buffered ' DEBUG - \''''
+icon_name = "activity"
+color = "#ffbe6f"
+execution_mode = "terminal"
+category = "Plex"
+os = "linux"
+tooltip = "The log button shows what already happened; this one keeps printing while you press play, so a stutter or a failed conversion is visible at the moment it occurs. Ctrl+C closes it."
+
+[[button]]
+id = "plxs-060"
+name = "Who is using the drives?"
+command = '''export PATH="$PATH:/usr/sbin:/sbin"; if ! command -v iotop >/dev/null; then echo "iotop is missing on this server - installing it now (one-off, from your distribution's repository)."; if command -v apt-get >/dev/null; then sudo apt-get install -y iotop 2>/dev/null || { sudo apt-get update -qq && sudo apt-get install -y iotop; } || exit $?; elif command -v dnf >/dev/null; then sudo dnf install -y iotop || exit $?; elif command -v pacman >/dev/null; then sudo pacman -S --noconfirm iotop || exit $?; elif command -v zypper >/dev/null; then sudo zypper install -y iotop || exit $?; elif command -v apk >/dev/null; then sudo apk add iotop || exit $?; else echo "Unknown package manager - please install iotop yourself."; exit 0; fi; echo "Installed."; echo; fi; echo "Watching the drives for 10 seconds..."; echo; out=$(sudo iotop -boPn10 -d 1 2>&1); rc=$?; case "$out" in *"sudo:"*) printf '%s\n' "$out" >&2; exit 1;; esac; case "$out" in *"Netlink error"*|*CONFIG_TASKSTATS*) echo "This machine cannot say which process is using the drives."; echo; echo "The kernel here does not publish per-process disk statistics. That is normal inside an unprivileged container (a Proxmox LXC): the figures exist only on the host machine, so look there instead."; exit 0;; esac; [ "$rc" = 0 ] || { printf '%s\n' "$out" >&2; exit "$rc"; }; [ -n "$out" ] || { echo "iotop reported nothing at all on this machine."; exit 0; }; digest=$(echo "$out" | LC_ALL=C awk 'function mult(u) { return u == "M/s" ? 1048576 : u == "K/s" ? 1024 : u == "G/s" ? 1073741824 : 1 } function human(b) { if (b >= 1048576) return sprintf("%.1f MB/s", b / 1048576); if (b >= 1024) return sprintf("%.0f KB/s", b / 1024); return sprintf("%.0f B/s", b) } /DISK READ:|^ *(PID|TID)/ { next } NF < 8 { next } { r = $4 * mult($5); w = $6 * mult($7); i = 8; while (i <= NF && $i ~ /^([0-9.]+|[BKMG]\/s|%|\?unavailable\?)$/) i++; cmd = $i; if (cmd !~ /^\[/) sub(/.*\//, "", cmd); if (cmd == "") next; if (r > read[cmd]) read[cmd] = r; if (w > write[cmd]) write[cmd] = w } END { n = 0; for (c in read) { top = read[c] > write[c] ? read[c] : write[c]; if (top < 102400) { quiet++; continue } n++; name[n] = c; peak[n] = top } for (a = 1; a <= n; a++) for (b = a + 1; b <= n; b++) if (peak[b] > peak[a]) { t = peak[a]; peak[a] = peak[b]; peak[b] = t; s = name[a]; name[a] = name[b]; name[b] = s } for (a = 1; a <= n && a <= 6; a++) { c = name[a]; printf "%-22s %s\n", c, (read[c] >= write[c] ? "reads  " human(read[c]) : "writes " human(write[c])) } if (n == 0) print "Nothing but background housekeeping (system journal, logs) - no process is really using the drives."; else if (quiet > 0) printf "\n(plus %d background process(es) under 100 KB/s: journal, logs)\n", quiet }'); if echo "$out" | grep -qE "^[[:space:]]*[0-9]+" && ! echo "$digest" | grep -qE "reads |writes "; then echo "$out" | head -40; else echo "$digest"; fi'''
+icon_name = "hdd"
+color = "#99c1f1"
+show_output = true
+timeout = 300
+tooltip = "Watches the drives for 10 seconds and names the processes that actually used them, with their peak speed. Background noise is summarised in one line. Installs the iotop tool by itself the first time."
+
+[[button]]
+id = "plxs-070"
+name = "Space & conversion cache"
+command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; echo "=== The disks of this machine ==="; rows=$(df -h -x tmpfs -x devtmpfs -x squashfs -x overlay 2>/dev/null | tail -n +2); df -h / | head -1; [ -n "$rows" ] && printf '%s\n' "$rows" || df -h; warn=$(printf '%s\n' "$rows" | awk '{u=$5; gsub(/%/,"",u); if (u+0 >= 90 && u+0 > m) { m=u+0; avail=$4; where=$6 } } END { if (m) print m"|"avail"|"where }'); case "$warn" in ?*) pct=${warn%%|*}; rest=${warn#*|}; left=${rest%%|*}; where=${rest##*|}; echo; echo "WARNING: $where is $pct% full - only $left left."; echo "Plex needs room to convert video and to write its database. When the disk fills, playback fails and a library scan can damage the catalogue. Free some space before anything else.";; esac; echo; echo "=== Where converted video is written ==="; PREF=$(sudo cat "$SUP/Preferences.xml" 2>/dev/null); TDIR=$(printf '%s' "$PREF" | sed -n 's/.*TranscoderTempDirectory="\([^"]*\)".*/\1/p'); [ -n "$TDIR" ] || { TDIR="$SUP/Cache/Transcode"; echo "(Plex was never given a folder of its own, so it uses the default one.)"; }; echo "$TDIR"; sz=$(sudo du -sh "$TDIR" 2>/dev/null | cut -f1); [ -n "$sz" ] && echo "Currently holding: $sz" || echo "Nothing cached there right now."'''
+icon_name = "folder2"
+color = "#57e389"
+show_output = true
+timeout = 300
+tooltip = "Every real disk of the machine with how full it is - said in plain words when one is nearly full - plus how much room Plex's converted video is eating."
+
+[[button]]
+id = "plxs-080"
+name = "Why is the graphics chip not used?"
+command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; echo "=== 1. Is there a graphics chip to use? ==="; dri=$(ls -l /dev/dri 2>/dev/null | grep renderD); if [ -n "$dri" ]; then printf '%s\n' "$dri"; else echo "No /dev/dri/renderD* on this machine."; echo "On a physical machine that means no usable graphics chip (or no driver). In a Proxmox LXC it usually means the device was not passed into the container."; fi; echo; echo "=== 2. Is Plex allowed to open it? ==="; grp=$(ls -l /dev/dri/renderD128 2>/dev/null | awk '{print $4}'); if [ -n "$grp" ]; then echo "The device belongs to group: $grp"; if id -nG plex 2>/dev/null | tr ' ' '\n' | grep -qx "$grp"; then echo "The plex user IS in that group - this is not what is blocking you."; else echo "The plex user is NOT in that group. Fix it with:  sudo usermod -aG $grp plex  then restart Plex."; fi; else echo "(no renderD128 to check)"; fi; echo; echo "=== 3. Is the setting ticked? ==="; PREF=$(sudo cat "$SUP/Preferences.xml" 2>/dev/null); hw=$(printf '%s' "$PREF" | sed -n 's/.*HardwareAcceleratedCodecs="\([^"]*\)".*/\1/p'); case "$hw" in 1) echo "Yes - hardware acceleration is turned on in Plex's settings.";; 0) echo "No - the box is unticked. Settings > Transcoder > Use hardware acceleration when available.";; *) echo "Plex has never been given the setting. Settings > Transcoder > Use hardware acceleration when available.";; esac; echo; echo "=== 4. What the log says the last time it converted ==="; sudo tail -n 3000 "$SUP/Logs/Plex Media Server.log" 2>/dev/null | grep -i 'hardware' | tail -5 | grep . || echo "Nothing about hardware in the recent log - either it has not converted anything lately, or it never tried."; echo; echo "One more thing no command can check from here: hardware conversion needs an active Plex Pass. Without it Plex quietly uses the processor instead."'''
+icon_name = "pc-display"
+color = "#dc8add"
+show_output = true
+timeout = 300
+tooltip = "The reasons hardware conversion silently falls back to the processor, checked one by one: no chip or none passed into the container, the plex user cannot open it, the setting is off - or there is no Plex Pass."
+
+[[button]]
+id = "plxs-090"
+name = "Is something else holding Plex's port?"
+command = '''export PATH="$PATH:/usr/sbin:/sbin"; if command -v ss >/dev/null; then out=$(sudo ss -tlnp 2>/dev/null | grep ':32400'); elif command -v netstat >/dev/null; then out=$(sudo netstat -tlnp 2>/dev/null | grep ':32400'); else echo "Neither ss nor netstat is installed here, so the port cannot be checked."; exit 0; fi; if [ -z "$out" ]; then echo "Nothing is listening on port 32400."; echo; echo "If Plex is supposed to be running, that is the problem itself: it started and gave up, or it never started. Look at 'What Plex reported'."; exit 0; fi; printf '%s\n' "$out"; echo; if printf '%s' "$out" | grep -qi 'plex'; then echo "That is Plex itself - the port is in the right hands."; else echo "Something OTHER than Plex is holding port 32400. Plex cannot start while that program has it."; fi'''
+icon_name = "ethernet"
+color = "#99c1f1"
+show_output = true
+tooltip = "Plex refuses to start, or the web page never answers? This says who is holding the port Plex needs - itself, or another program that took it first."
+
+[[button]]
+id = "plxs-095"
+name = "Look for new films and episodes"
+command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; SCAN="/usr/lib/plexmediaserver/Plex Media Scanner"; SQL="/usr/lib/plexmediaserver/Plex SQLite"; [ -x "$SCAN" ] || { echo "Plex's own scanner tool is not on this machine, so nothing can be scanned from here."; exit 1; }; DB="$SUP/Plug-in Support/Databases/com.plexapp.plugins.library.db"; ids=""; if [ -x "$SQL" ]; then ids=$(sudo sh -c 'cp "$1" /tmp/plexlist.db 2>/dev/null && "$2" /tmp/plexlist.db "SELECT id, name FROM library_sections ORDER BY id;"; rc=$?; rm -f /tmp/plexlist.db; exit $rc' sh "$DB" "$SQL" 2>/dev/null); fi; [ -n "$ids" ] || ids=$(sudo -u plex env LD_LIBRARY_PATH=/usr/lib/plexmediaserver "PLEX_MEDIA_SERVER_APPLICATION_SUPPORT_DIR=/var/lib/plexmediaserver/Library/Application Support" "$SCAN" --list | sed -n 's/^ *\([0-9][0-9]*\): *\(.*\)$/\1|\2/p'); [ -n "$ids" ] || { echo "Plex reports no library at all, so there is nothing to look through."; exit 1; }; echo "$ids" | while IFS='|' read -r id nm; do [ -n "$id" ] || continue; printf '%s... ' "$nm"; if sudo -u plex env LD_LIBRARY_PATH=/usr/lib/plexmediaserver "PLEX_MEDIA_SERVER_APPLICATION_SUPPORT_DIR=/var/lib/plexmediaserver/Library/Application Support" "$SCAN" --scan --section "$id" >/dev/null 2>&1; then echo "looked through."; else echo "REFUSED by Plex - this one was not scanned."; fi; done; echo; echo "Plex reads the new files in the background; they appear as it goes. A big library takes several minutes."'''
+icon_name = "file-earmark-diff"
+color = "#62a0ea"
+show_output = true
+timeout = 900
+tooltip = "The film you dropped in the folder is not showing up? This tells Plex to look through every library again. Nothing to type, nothing to choose."
+
+# ── Acting (rare, and in this order) ──────────────────────────────────────
+[[button]]
+id = "plxs-100"
+name = "Restart Plex"
+command = '''sudo systemctl restart plexmediaserver || exit $?; sleep 4; if systemctl is-active --quiet plexmediaserver; then echo "Plex restarted and is running."; else echo "Plex was restarted but is NOT running now."; echo; systemctl status plexmediaserver --no-pager 2>&1 | head -12; exit 1; fi'''
+icon_name = "arrow-clockwise"
+color = "#f8e45c"
+show_output = true
+confirm_before_run = true
+tooltip = "First move when something is stuck. Anyone watching will be interrupted. Restarts the service and checks it really came back."
+
+[[button]]
+id = "plxs-110"
+name = "Update Plex"
+command = '''command -v apt-get >/dev/null || { echo "This machine does not use apt. Update Plex with your own package manager, or from Plex's repository for your distribution."; exit 0; }; sudo apt-get update || exit $?; before=$(dpkg-query -W -f='${Version}' plexmediaserver 2>/dev/null); sudo apt-get install --only-upgrade -y plexmediaserver || exit $?; after=$(dpkg-query -W -f='${Version}' plexmediaserver 2>/dev/null); echo; if [ "$before" = "$after" ]; then echo "Already the newest version Plex publishes ($after)."; else echo "Updated: $before -> $after"; fi; sleep 4; if systemctl is-active --quiet plexmediaserver; then echo "Plex is running."; else echo "Plex is NOT running after the update - look at the log."; systemctl status plexmediaserver --no-pager 2>&1 | head -12; exit 1; fi'''
+icon_name = "cloud-download"
+color = "#62a0ea"
+show_output = true
+confirm_before_run = true
+timeout = 900
+tooltip = "Installs the newest Plex from Plex's own repository, says which version replaced which, and checks the server came back up."
+
+[[button]]
+id = "plxs-120"
+name = "Clear the conversion cache"
+command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; PREF=$(sudo cat "$SUP/Preferences.xml" 2>/dev/null); TDIR=$(printf '%s' "$PREF" | sed -n 's/.*TranscoderTempDirectory="\([^"]*\)".*/\1/p'); [ -n "$TDIR" ] || TDIR="$SUP/Cache/Transcode"; out=$(sudo sh -c 'd="$1"; [ -d "$d" ] || { echo MISSING; exit 0; }; echo "before: $(du -sh "$d" | cut -f1)"; rm -rf "$d"/*; echo "after:  $(du -sh "$d" | cut -f1)"' sh "$TDIR") || exit $?; case "$out" in MISSING) echo "There is no conversion folder at $TDIR - nothing to clear.";; *) echo "$TDIR"; printf '%s\n' "$out";; esac'''
+icon_name = "trash"
+color = "#f66151"
+show_output = true
+confirm_before_run = true
+timeout = 300
+tooltip = "Deletes the temporary converted video only - never your films, never your settings. Do not click it while someone is watching."
+
+[[button]]
+id = "plxs-130"
+name = "Is the database healthy?"
+command = '''SUP="/var/lib/plexmediaserver/Library/Application Support/Plex Media Server"; DB="$SUP/Plug-in Support/Databases/com.plexapp.plugins.library.db"; SQL="/usr/lib/plexmediaserver/Plex SQLite"; sudo test -f "$DB" || { echo "Plex's database file is not where it normally lives, so it cannot be checked."; exit 1; }; [ -x "$SQL" ] || { echo "Plex's own database tool is missing. The ordinary sqlite3 cannot read this database, so the check is not possible here."; exit 1; }; sz=$(sudo stat -c %s "$DB" 2>/dev/null); if [ "${sz:-0}" -ge 1048576 ]; then hsz="$((sz / 1048576)) MB"; else hsz="$(( ${sz:-0} / 1024 )) KB"; fi; echo "Checking a copy, so nothing touches the live database. This can take a minute on a big library."; echo; t0=$(date +%s); out=$(sudo sh -c 'cp "$1" /tmp/plexcheck.db && "$2" /tmp/plexcheck.db "PRAGMA integrity_check;"; rc=$?; rm -f /tmp/plexcheck.db; exit $rc' sh "$DB" "$SQL" 2>&1) || { case "$out" in *"sudo:"*) printf '%s\n' "$out" >&2; exit 1;; esac; echo "The check could not be run, so the database is UNKNOWN - not healthy. Plex's own tool said:"; echo; printf '%s\n' "$out"; exit 1; }; t1=$(date +%s); el=$((t1 - t0)); if [ "$el" -eq 0 ]; then echo "Read the whole database - $hsz - in under a second."; else echo "Read the whole database - $hsz - in $el second(s)."; fi; echo; [ -n "$out" ] || { echo "The tool answered nothing at all, which is not normal - treat this as unknown, not as good news."; exit 1; }; case "$out" in ok) echo "Healthy. Plex's database passed the check.";; *) echo "Something is wrong with the database. Plex's own report:"; echo; printf '%s\n' "$out"; echo; echo "This is repairable, but not by a button: the server must be stopped first. Search Plex support for 'Repair a Corrupted Database' and follow it step by step - or restore the nightly copy Plex keeps beside it.";; esac'''
+icon_name = "server"
+color = "#ffbe6f"
+show_output = true
+timeout = 900
+tooltip = "A Plex that forgets films, loses watched marks or refuses to start often has a damaged database. This checks a copy of it and never modifies anything."
