@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "linux-essentials"
 name = "Linux Essentials"
-pack_ver = "1.7.1"
+pack_ver = "1.7.2"
 os = "linux"
 category = "Linux Essentials"
 description = "Core system info, logs and maintenance actions."
@@ -92,11 +92,13 @@ os = "linux"
 [[button]]
 id = "clear-trash"
 name = "Clear Trash"
-command = "rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/* 2>/dev/null && echo 'Trash cleared.'"
+command = "list=$( { echo \"$HOME/.local/share/Trash\"; findmnt --real -n -o TARGET 2>/dev/null | while IFS= read -r t; do for d in \"$t\"/.Trash-* \"$t\"/.Trash/*; do [ -d \"$d\" ] && echo \"$d\"; done; done; } | sort -u); freed=0; n=0; denied=0; while IFS= read -r d; do [ -n \"$d\" ] || continue; [ -d \"$d\" ] || continue; mb=$(du -sm \"$d\" 2>/dev/null | cut -f1); [ -n \"$mb\" ] || { denied=$((denied + 1)); continue; }; items=$(ls -A \"$d\" 2>/dev/null | wc -l); [ \"$items\" -gt 0 ] || continue; n=$((n + 1)); if [ \"$mb\" -ge 1024 ]; then printf '%8.1f GB  %s\\n' \"$(echo \"$mb\" | awk '{print $1/1024}')\" \"$d\"; else printf '%8d MB  %s\\n' \"$mb\" \"$d\"; fi; rm -rf \"$d\" 2>/dev/null || { echo \"          (could not be emptied - it belongs to another account)\"; denied=$((denied + 1)); continue; }; freed=$((freed + mb)); done <<EOF\n$list\nEOF\nif [ \"$n\" -eq 0 ]; then echo \"No trash to empty: every trash folder on this machine is already empty.\"; else echo; if [ \"$freed\" -ge 1024 ]; then echo \"Emptied $n trash folder(s) - about $((freed / 1024)) GB freed.\"; else echo \"Emptied $n trash folder(s) - about $freed MB freed.\"; fi; fi; [ \"$denied\" -gt 0 ] && echo \"($denied trash folder(s) belong to another account and were left alone. Run this button as that user, or with administrator rights, to empty them too.)\"; exit 0"
 icon_name = "trash"
 color = "#865e3c"
-tooltip = "Permanently delete all files in the Trash"
+tooltip = "Empties every trash on this machine - this account's, and the one each disk keeps at its root when you delete a file over the network - and says how much space came back."
+show_output = true
 confirm_before_run = true
+timeout = 300
 category = "Linux Essentials"
 os = "linux"
 
