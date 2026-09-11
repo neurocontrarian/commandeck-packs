@@ -245,6 +245,23 @@
       "path": "windows/network/pack.toml",
       "sig": "windows/network/pack.sig",
       "signed": true
+    },
+    {
+      "pack_id": "plex-docker",
+      "name": "Plex (Docker)",
+      "description": "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update, rescan a library and check the database. For a Plex Media Server running in a Docker container.",
+      "os": "linux",
+      "tags": [
+        "plex",
+        "docker",
+        "media-server",
+        "selfhosted",
+        "diagnostics"
+      ],
+      "pack_ver": "1.0.0",
+      "path": "linux/plex-docker/pack.toml",
+      "sig": "linux/plex-docker/pack.sig",
+      "signed": true
     }
   ]
 }

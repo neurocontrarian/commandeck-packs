@@ -1,0 +1,173 @@
+version = 1
+
+[pack]
+pack_id = "plex-docker"
+name = "Plex (Docker)"
+pack_ver = "1.0.0"
+os = "linux"
+category = "Plex"
+description = "The questions you would otherwise SSH in for: is it running, why is it busy, what does the log say - plus restart, update, rescan a library and check the database. For a Plex Media Server running in a Docker container."
+requires = "Plex Media Server in a Docker container, reached over SSH by a user allowed to run sudo. The container is found by its image name, so it can be called anything. Installed Plex with apt, or on a Synology/QNAP package? These commands are completely different - do not install this pack."
+tags = ["plex", "docker", "media-server", "selfhosted", "diagnostics"]
+
+# ── Is it healthy? ────────────────────────────────────────────────────────
+[[button]]
+id = "plx-010"
+name = "Is Plex running?"
+command = '''out=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}|{{.Status}}') || exit $?; list=$(printf '%s\n' "$out" | awk -F'|' 'tolower($2) ~ /plex/ {print $1": "$3}'); [ -n "$list" ] && printf '%s\n' "$list" || echo "No container built from a Plex image exists on this machine."'''
+icon_name = "info-circle"
+color = "#62a0ea"
+show_output = true
+tooltip = "Shows the container and how long it has been up - or why it stopped (Exited 137 = killed, out of memory)."
+
+[[button]]
+id = "plx-020"
+name = "Why is Plex busy?"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container on this machine."; exit 1; }; echo "=== Converting a video right now? ==="; line=$(ps -eo pcpu,args --no-headers | grep '[P]lex Transcoder' | head -1); if [ -n "$line" ]; then cpu=$(printf '%s' "$line" | awk '{print $1}'); src=$(printf '%s' "$line" | sed -n 's/.* -i \([^ ]*\).*/\1/p'); src=$(printf '%s' "$src" | tr -d '"'); src=${src##*/}; echo "Yes - Plex is converting a video right now."; [ -n "$src" ] && echo "  File: $src"; case "$cpu" in 0|0.0|"") : ;; *) echo "  CPU:  $cpu% for that one process";; esac; echo "  (Converting the picture is what makes a server sweat. If it happens on every play, the device asking for the film cannot read the original format.)"; else echo "No, nothing is being converted."; fi; echo; echo "=== Scanning the library right now? ==="; if ps -eo args --no-headers | grep -q '[P]lex Media Scanner'; then echo "Yes - a library scan is running."; else echo "No scanner running at this second (a scan can still be between files)."; fi'''
+icon_name = "cpu"
+color = "#f8e45c"
+show_output = true
+tooltip = "Noisy drives or a hot processor? This answers it: a video being converted, a library scan, or neither."
+
+[[button]]
+id = "plx-030"
+name = "Resources right now"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; sudo docker stats --no-stream "$P"'''
+icon_name = "activity"
+color = "#8ff0a4"
+show_output = true
+tooltip = "One snapshot of the processor, memory, network and disk use of the Plex container."
+
+[[button]]
+id = "plx-040"
+name = "Recent errors"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; [ -n "$SUP" ] || { echo "Plex's own data folder was not found inside the container, so its log cannot be read."; exit 1; }; log=$(sudo docker exec "$P" tail -n 2000 "$SUP/Logs/Plex Media Server.log") || exit $?; errs=$(printf '%s\n' "$log" | grep ' ERROR - ' | tail -20); [ -n "$errs" ] && printf '%s\n' "$errs" || echo "No errors in the last 2000 log lines."'''
+icon_name = "exclamation-triangle"
+color = "#ffbe6f"
+show_output = true
+tooltip = "Plex does not write its log where Docker can see it - this reads Plex's own log file, inside the container, and keeps only the real errors."
+
+[[button]]
+id = "plx-050"
+name = "Full recent log"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; [ -n "$SUP" ] || { echo "Plex's own data folder was not found inside the container, so its log cannot be read."; exit 1; }; out=$(sudo docker exec "$P" tail -n 60 "$SUP/Logs/Plex Media Server.log") || exit $?; [ -n "$out" ] && printf '%s\n' "$out" || echo "Plex's log file is there but empty."'''
+icon_name = "journal-text"
+color = "#ffa348"
+show_output = true
+tooltip = "The raw last 60 lines, unfiltered. Use it when the filtered button is not enough - or to copy/paste into your AI assistant or a forum post."
+
+[[button]]
+id = "plx-055"
+name = "Follow the log live"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; [ -n "$SUP" ] || { echo "Plex's own data folder was not found inside the container."; exit 1; }; echo "Reproduce the problem now - Plex writes here as it happens."; echo "Press Ctrl+C - or just leave this view - when you have seen enough."; echo; sudo docker exec "$P" tail -f -n 40 "$SUP/Logs/Plex Media Server.log"'''
+icon_name = "activity"
+color = "#ffbe6f"
+execution_mode = "terminal"
+category = "Plex"
+os = "linux"
+tooltip = "The log button shows what already happened; this one keeps printing while you press play, so a stutter or a failed conversion is visible at the moment it occurs. Ctrl+C closes it."
+
+[[button]]
+id = "plx-060"
+name = "Who is using the drives?"
+command = '''export PATH="$PATH:/usr/sbin:/sbin"; if ! command -v iotop >/dev/null; then echo "iotop is missing on this server - installing it now (one-off, from your distribution's repository)."; if command -v apt-get >/dev/null; then sudo apt-get install -y iotop 2>/dev/null || { sudo apt-get update -qq && sudo apt-get install -y iotop; } || exit $?; elif command -v dnf >/dev/null; then sudo dnf install -y iotop || exit $?; elif command -v pacman >/dev/null; then sudo pacman -S --noconfirm iotop || exit $?; elif command -v zypper >/dev/null; then sudo zypper install -y iotop || exit $?; elif command -v apk >/dev/null; then sudo apk add iotop || exit $?; else echo "Unknown package manager - please install iotop yourself."; exit 0; fi; echo "Installed."; echo; fi; echo "Watching the drives for 10 seconds..."; echo; out=$(sudo iotop -boPn10 -d 1 2>&1); rc=$?; case "$out" in *"sudo:"*) printf '%s\n' "$out" >&2; exit 1;; esac; case "$out" in *"Netlink error"*|*CONFIG_TASKSTATS*) echo "This machine cannot say which process is using the drives."; echo; echo "The kernel here does not publish per-process disk statistics. That is normal inside an unprivileged container (a Proxmox LXC, or Docker): the figures exist only on the host machine, so look there instead."; exit 0;; esac; [ "$rc" = 0 ] || { printf '%s\n' "$out" >&2; exit "$rc"; }; [ -n "$out" ] || { echo "iotop reported nothing at all on this machine."; exit 0; }; digest=$(echo "$out" | LC_ALL=C awk 'function mult(u) { return u == "M/s" ? 1048576 : u == "K/s" ? 1024 : u == "G/s" ? 1073741824 : 1 } function human(b) { if (b >= 1048576) return sprintf("%.1f MB/s", b / 1048576); if (b >= 1024) return sprintf("%.0f KB/s", b / 1024); return sprintf("%.0f B/s", b) } /DISK READ:|^ *(PID|TID)/ { next } NF < 8 { next } { r = $4 * mult($5); w = $6 * mult($7); i = 8; while (i <= NF && $i ~ /^([0-9.]+|[BKMG]\/s|%|\?unavailable\?)$/) i++; cmd = $i; if (cmd !~ /^\[/) sub(/.*\//, "", cmd); if (cmd == "") next; if (r > read[cmd]) read[cmd] = r; if (w > write[cmd]) write[cmd] = w } END { n = 0; for (c in read) { top = read[c] > write[c] ? read[c] : write[c]; if (top < 102400) { quiet++; continue } n++; name[n] = c; peak[n] = top } for (a = 1; a <= n; a++) for (b = a + 1; b <= n; b++) if (peak[b] > peak[a]) { t = peak[a]; peak[a] = peak[b]; peak[b] = t; s = name[a]; name[a] = name[b]; name[b] = s } for (a = 1; a <= n && a <= 6; a++) { c = name[a]; printf "%-22s %s\n", c, (read[c] >= write[c] ? "reads  " human(read[c]) : "writes " human(write[c])) } if (n == 0) print "Nothing but background housekeeping (system journal, Docker, logs) - no process is really using the drives."; else if (quiet > 0) printf "\n(plus %d background process(es) under 100 KB/s: journal, Docker, logs)\n", quiet }'); if echo "$out" | grep -qE "^[[:space:]]*[0-9]+" && ! echo "$digest" | grep -qE "reads |writes "; then echo "$out" | head -40; else echo "$digest"; fi'''
+icon_name = "hdd"
+color = "#99c1f1"
+show_output = true
+timeout = 300
+tooltip = "Watches the drives for 10 seconds and names the processes that actually used them, with their peak speed. Background noise is summarised in one line. Installs the iotop tool by itself the first time."
+
+[[button]]
+id = "plx-070"
+name = "Space & conversion cache"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; [ -n "$SUP" ] || { echo "Plex's own data folder was not found inside the container."; exit 1; }; echo "=== Disks Plex can see ==="; dests=$(sudo docker inspect --format '{{range .Mounts}}{{println .Destination}}{{end}}' "$P") || exit $?; shown=""; printf '%s\n' "$dests" | while IFS= read -r d; do [ -n "$d" ] || continue; sudo docker exec "$P" df -h "$d" 2>/dev/null | tail -n +2; done | sort -u | grep . || sudo docker exec "$P" df -h /config; echo; echo "=== Where converted video is written ==="; PREF=$(sudo docker exec "$P" cat "$SUP/Preferences.xml" 2>/dev/null); TDIR=$(printf '%s' "$PREF" | sed -n 's/.*TranscoderTempDirectory="\([^"]*\)".*/\1/p'); [ -n "$TDIR" ] || { TDIR="$SUP/Cache/Transcode"; echo "(Plex was never given a folder of its own, so it uses the default one.)"; }; echo "$TDIR"; sz=$(sudo docker exec "$P" sh -c 'du -sh "$1" 2>/dev/null | cut -f1' sh "$TDIR"); [ -n "$sz" ] && echo "Currently holding: $sz" || echo "Nothing cached there right now."; case "$TDIR" in /dev/shm*) echo; echo "=== Conversions go to memory, not to disk ==="; sudo docker exec "$P" df -h /dev/shm | tail -1; echo "If the size above is 64M, Plex will stop mid-film saying the disk is full. Raise shm_size in your compose file.";; esac'''
+icon_name = "folder2"
+color = "#57e389"
+show_output = true
+timeout = 300
+tooltip = "Free space on every folder Plex can reach, plus how much room its converted video is eating - and a warning if those conversions are going to memory with too little of it."
+
+[[button]]
+id = "plx-080"
+name = "Why is the graphics chip not used?"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; echo "=== 1. Is the graphics chip visible inside the container? ==="; dri=$(sudo docker exec "$P" ls -l /dev/dri 2>/dev/null); if [ -n "$dri" ]; then printf '%s\n' "$dri"; else echo "No - there is no /dev/dri inside the container."; echo "Add this to your compose file, under the plex service:  devices:  - /dev/dri:/dev/dri"; fi; echo; echo "=== 2. Is Plex allowed to open it? ==="; sudo docker exec "$P" id 2>/dev/null || echo "(could not read the container user)"; echo "The user above must belong to the group that owns /dev/dri/renderD128 in the list at step 1."; echo; echo "=== 3. Is the setting ticked? ==="; if [ -n "$SUP" ]; then PREF=$(sudo docker exec "$P" cat "$SUP/Preferences.xml" 2>/dev/null); hw=$(printf '%s' "$PREF" | sed -n 's/.*HardwareAcceleratedCodecs="\([^"]*\)".*/\1/p'); case "$hw" in 1) echo "Yes - hardware acceleration is turned on in Plex's settings.";; 0) echo "No - the box is unticked. Settings > Transcoder > Use hardware acceleration when available.";; *) echo "Plex has never been given the setting. Settings > Transcoder > Use hardware acceleration when available.";; esac; echo; echo "=== 4. What the log says the last time it converted ==="; sudo docker exec "$P" tail -n 3000 "$SUP/Logs/Plex Media Server.log" 2>/dev/null | grep -i 'hardware' | tail -5 | grep . || echo "Nothing about hardware in the recent log - either it has not converted anything lately, or it never tried."; fi; echo; echo "One more thing no command can check from here: hardware conversion needs an active Plex Pass. Without it Plex quietly uses the processor instead."'''
+icon_name = "pc-display"
+color = "#dc8add"
+show_output = true
+timeout = 300
+tooltip = "The reasons hardware conversion silently falls back to the processor, checked one by one: the chip is not passed through, Plex cannot open it, the setting is off - or there is no Plex Pass."
+
+[[button]]
+id = "plx-090"
+name = "My libraries and their numbers"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; [ -n "$SUP" ] || { echo "Plex's own data folder was not found inside the container."; exit 1; }; sudo docker exec "$P" sh -c '[ -x "/usr/lib/plexmediaserver/Plex Media Scanner" ]' || { echo "This container does not carry Plex's own scanner tool, so its libraries cannot be listed from here."; exit 1; }; owner=$(sudo docker exec "$P" stat -c '%u:%g' "$SUP") || exit $?; APPSUP=$(dirname "$SUP"); out=$(sudo docker exec -u "$owner" -e LD_LIBRARY_PATH=/usr/lib/plexmediaserver -e "PLEX_MEDIA_SERVER_APPLICATION_SUPPORT_DIR=$APPSUP" "$P" "/usr/lib/plexmediaserver/Plex Media Scanner" --list) || exit $?; [ -n "$out" ] && { echo "Each line is one library, with the number to type into the rescan button:"; echo; printf '%s\n' "$out"; } || echo "Plex answered with an empty list - this server has no library yet."'''
+icon_name = "stack"
+color = "#99c1f1"
+show_output = true
+timeout = 300
+tooltip = "Lists your libraries with the number Plex knows them by. You need that number once, for the rescan button."
+
+[[button]]
+id = "plx-095"
+name = "Rescan one library"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; [ -n "$SUP" ] || { echo "Plex's own data folder was not found inside the container."; exit 1; }; owner=$(sudo docker exec "$P" stat -c '%u:%g' "$SUP") || exit $?; APPSUP=$(dirname "$SUP"); sudo docker exec -u "$owner" -e LD_LIBRARY_PATH=/usr/lib/plexmediaserver -e "PLEX_MEDIA_SERVER_APPLICATION_SUPPORT_DIR=$APPSUP" "$P" "/usr/lib/plexmediaserver/Plex Media Scanner" --scan --refresh --section {{library_id}} || exit $?; echo "Plex is now looking through library {{library_id}} for files it has not seen yet."; echo "A big library takes minutes - watch it finish in Plex itself, or with the live log button."'''
+icon_name = "arrow-repeat"
+color = "#62a0ea"
+show_output = true
+timeout = 900
+tooltip = "The film you added is not showing up? This tells Plex to look again at one library. Use the button above once to find its number."
+
+# ── Acting (rare, and in this order) ──────────────────────────────────────
+[[button]]
+id = "plx-100"
+name = "Restart Plex"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container on this machine."; exit 1; }; sudo docker restart "$P" >/dev/null || exit $?; sleep 3; sudo docker ps --filter "name=$P" --format '{{.Names}}: {{.Status}}' | grep . || echo "The container was restarted but is not running - look at the log."'''
+icon_name = "arrow-clockwise"
+color = "#f8e45c"
+show_output = true
+confirm_before_run = true
+tooltip = "First move when something is stuck. Anyone watching will be interrupted. Restarts the container and reports its new status."
+
+[[button]]
+id = "plx-110"
+name = "Update Plex"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container on this machine."; exit 1; }; dir=$(sudo docker inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' "$P" 2>/dev/null); if [ -z "$dir" ] || [ ! -d "$dir" ]; then echo "The compose file for this container is not reachable from the server."; echo "Update it from Portainer: Stacks > your stack > Update the stack, with 'Re-pull image' enabled."; echo "(A Portainer stack keeps its compose file inside Portainer's own volume, so the server cannot open it.)"; exit 0; fi; echo "Compose folder: $dir"; cd "$dir" && sudo docker compose pull && sudo docker compose up -d && sleep 5 && { sudo docker ps --filter "name=$P" --format '{{.Names}}: {{.Status}}' | grep . || { echo "The new image was pulled, but no Plex container is running now - look at the log."; exit 1; }; }'''
+icon_name = "cloud-download"
+color = "#62a0ea"
+show_output = true
+confirm_before_run = true
+timeout = 900
+tooltip = "Finds your compose folder by itself, pulls the newer image, recreates the container and checks it came back up. Nothing to configure."
+
+[[button]]
+id = "plx-120"
+name = "Clear the conversion cache"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; [ -n "$SUP" ] || { echo "Plex's own data folder was not found inside the container."; exit 1; }; PREF=$(sudo docker exec "$P" cat "$SUP/Preferences.xml" 2>/dev/null); TDIR=$(printf '%s' "$PREF" | sed -n 's/.*TranscoderTempDirectory="\([^"]*\)".*/\1/p'); [ -n "$TDIR" ] || TDIR="$SUP/Cache/Transcode"; out=$(sudo docker exec "$P" sh -c 'd="$1"; [ -d "$d" ] || { echo MISSING; exit 0; }; echo "before: $(du -sh "$d" | cut -f1)"; rm -rf "$d"/*; echo "after:  $(du -sh "$d" | cut -f1)"' sh "$TDIR") || exit $?; case "$out" in MISSING) echo "There is no conversion folder at $TDIR - nothing to clear.";; *) echo "$TDIR"; printf '%s\n' "$out";; esac'''
+icon_name = "trash"
+color = "#f66151"
+show_output = true
+confirm_before_run = true
+timeout = 300
+tooltip = "Deletes the temporary converted video only - never your films, never your settings. Do not click it while someone is watching."
+
+[[button]]
+id = "plx-130"
+name = "Is the database healthy?"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; SUP=$(sudo docker exec "$P" sh -c 'd="/config/Library/Application Support/Plex Media Server"; if [ -d "$d" ]; then echo "$d"; else find /config -maxdepth 5 -type d -name "Plex Media Server" 2>/dev/null | head -1; fi') || exit $?; [ -n "$SUP" ] || { echo "Plex's own data folder was not found inside the container."; exit 1; }; DB="$SUP/Plug-in Support/Databases/com.plexapp.plugins.library.db"; sudo docker exec "$P" test -f "$DB" || { echo "Plex's database file is not where it normally lives, so it cannot be checked."; exit 1; }; sudo docker exec "$P" sh -c '[ -x "/usr/lib/plexmediaserver/Plex SQLite" ]' || { echo "This container does not carry Plex's own database tool. The ordinary sqlite3 cannot read this database, so the check is not possible here."; exit 1; }; echo "Checking a copy, so nothing touches the live database. This can take a minute on a big library."; echo; out=$(sudo docker exec "$P" sh -c 'cp "$1" /tmp/plexcheck.db && "/usr/lib/plexmediaserver/Plex SQLite" /tmp/plexcheck.db "PRAGMA integrity_check;"; rc=$?; rm -f /tmp/plexcheck.db; exit $rc' sh "$DB" 2>&1) || { case "$out" in *"sudo:"*) printf '%s\n' "$out" >&2; exit 1;; esac; echo "The check could not be run, so the database is UNKNOWN - not healthy. Plex's own tool said:"; echo; printf '%s\n' "$out"; exit 1; }; [ -n "$out" ] || { echo "The tool answered nothing at all, which is not normal - treat this as unknown, not as good news."; exit 1; }; case "$out" in ok) echo "Healthy. Plex's database passed the check.";; *) echo "Something is wrong with the database. Plex's own report:"; echo; printf '%s\n' "$out"; echo; echo "This is repairable, but not by a button: the server must be stopped first. Search Plex support for 'Repair a Corrupted Database' and follow it step by step - or restore the nightly copy Plex keeps beside it.";; esac'''
+icon_name = "database"
+color = "#ffbe6f"
+show_output = true
+timeout = 900
+tooltip = "A Plex that forgets films, loses watched marks or refuses to start often has a damaged database. This checks a copy of it and never modifies anything."
+
+[[button]]
+id = "plx-140"
+name = "Shell inside the container"
+command = '''sudo docker ps >/dev/null || exit $?; P=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /plex/ {print $1; exit}'); [ -n "$P" ] || { echo "No Plex container is running on this machine."; exit 1; }; echo "You are about to get a shell INSIDE the $P container."; echo "Type exit to leave. Changes outside mounted volumes are lost on the next update."; echo; sudo docker exec -it "$P" bash 2>/dev/null || sudo docker exec -it "$P" sh'''
+icon_name = "terminal"
+color = "#ffa348"
+execution_mode = "terminal"
+confirm_before_run = true
+category = "Plex"
+os = "linux"
+tooltip = "For the moment when an answer online says \"run this inside the container\". Opens a shell in the Plex container itself, not on the server. You type into it, so it needs a computer."
