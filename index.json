@@ -44,7 +44,7 @@
         "defaults",
         "essentials"
       ],
-      "pack_ver": "1.7.4",
+      "pack_ver": "1.7.5",
       "path": "linux/essentials/pack.toml",
       "sig": "linux/essentials/pack.sig",
       "signed": true
@@ -58,7 +58,7 @@
         "defaults",
         "hardware"
       ],
-      "pack_ver": "1.7.4",
+      "pack_ver": "1.7.5",
       "path": "linux/hardware/pack.toml",
       "sig": "linux/hardware/pack.sig",
       "signed": true
@@ -125,7 +125,7 @@
         "defaults",
         "network"
       ],
-      "pack_ver": "1.7.4",
+      "pack_ver": "1.7.5",
       "path": "linux/network/pack.toml",
       "sig": "linux/network/pack.sig",
       "signed": true
@@ -191,7 +191,7 @@
         "defaults",
         "essentials"
       ],
-      "pack_ver": "1.7.4",
+      "pack_ver": "1.7.5",
       "path": "macos/essentials/pack.toml",
       "sig": "macos/essentials/pack.sig",
       "signed": true
@@ -205,7 +205,7 @@
         "defaults",
         "hardware"
       ],
-      "pack_ver": "1.7.4",
+      "pack_ver": "1.7.5",
       "path": "macos/hardware/pack.toml",
       "sig": "macos/hardware/pack.sig",
       "signed": true
@@ -219,7 +219,7 @@
         "defaults",
         "network"
       ],
-      "pack_ver": "1.7.4",
+      "pack_ver": "1.7.5",
       "path": "macos/network/pack.toml",
       "sig": "macos/network/pack.sig",
       "signed": true
@@ -249,7 +249,7 @@
         "defaults",
         "essentials"
       ],
-      "pack_ver": "1.7.4",
+      "pack_ver": "1.7.5",
       "path": "windows/essentials/pack.toml",
       "sig": "windows/essentials/pack.sig",
       "signed": true
@@ -263,7 +263,7 @@
         "defaults",
         "hardware"
       ],
-      "pack_ver": "1.7.4",
+      "pack_ver": "1.7.5",
       "path": "windows/hardware/pack.toml",
       "sig": "windows/hardware/pack.sig",
       "signed": true
@@ -277,7 +277,7 @@
         "defaults",
         "network"
       ],
-      "pack_ver": "1.7.4",
+      "pack_ver": "1.7.5",
       "path": "windows/network/pack.toml",
       "sig": "windows/network/pack.sig",
       "signed": true
