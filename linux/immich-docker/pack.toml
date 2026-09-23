@@ -1,0 +1,160 @@
+version = 1
+
+[pack]
+pack_id = "immich-docker"
+name = "Immich (Docker)"
+pack_ver = "0.9.0"
+os = "linux"
+category = "Immich"
+description = "The questions you would otherwise SSH in for: is every part running, where did the disk space go, are the database backups really happening - plus a backup on demand, a safe update, the user list and a new admin password. For Immich running with Docker (compose or Portainer)."
+requires = "Immich in Docker, reached over SSH by a user allowed to run sudo. The containers are found by their image, so they can be called anything. Installed Immich some other way (Unraid template, TrueNAS app, snap)? Some buttons will not find it."
+tags = ["immich", "photos", "docker", "selfhosted", "backup", "diagnostics"]
+
+# ── Is it healthy? ────────────────────────────────────────────────────────
+[[button]]
+id = "imm-010"
+name = "Is Immich running?"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "No Immich server container on this machine."; exit 1; }; proj=$(sudo docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$S"); if [ -n "$proj" ]; then C=$(sudo docker ps -a --filter "label=com.docker.compose.project=$proj" --format '{{.Names}}|{{.Image}}|{{.Status}}'); else C=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}|{{.Status}}' | grep -iE 'immich|pgvecto|vectorchord'); fi; printf '%s\n' "$C" | awk -F'|' '{ i=tolower($2); r="another part of the stack"; if (i ~ /immich-server/) r="the app itself - the phone and the browser talk to it"; else if (i ~ /machine-learning/) r="faces and smart search"; else if (i ~ /postgres|pgvecto|vectorchord/) r="the database - albums, faces, who is who"; else if (i ~ /redis|valkey/) r="the list of background jobs"; printf "%s: %s\n    (%s)\n", $1, $3, r }'; down=$(printf '%s\n' "$C" | awk -F'|' '$3 !~ /^Up/ {print $1}'); sick=$(printf '%s\n' "$C" | awk -F'|' '$3 ~ /unhealthy/ {print $1}'); echo; if [ -n "$down" ]; then echo "NOT RUNNING: $(echo $down)"; echo "Immich needs all of its parts. Try Restart Immich, then Recent errors if it stops again."; elif [ -n "$sick" ]; then echo "Running, but reported UNHEALTHY: $(echo $sick). Look at Recent errors."; else echo "All parts are up."; fi'''
+icon_name = "info-circle"
+color = "#62a0ea"
+show_output = true
+tooltip = "Immich is four programs working together. This shows each one, what it is for, and whether it is up - or why it stopped (Exited 137 = killed, out of memory)."
+
+[[button]]
+id = "imm-020"
+name = "Is there a newer version?"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "No Immich server container on this machine."; exit 1; }; cur=$(sudo docker exec "$S" immich-admin version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1); [ -n "$cur" ] || cur=$(sudo docker inspect -f '{{index .Config.Labels "org.opencontainers.image.version"}}' "$S" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1); img=$(sudo docker inspect -f '{{.Config.Image}}' "$S"); echo "Running:  ${cur:-unknown}"; echo "Image:    $img"; url=https://api.github.com/repos/immich-app/immich/releases/latest; new=""; if command -v curl >/dev/null; then js=$(curl -fsS --max-time 15 "$url" 2>&1); elif command -v wget >/dev/null; then js=$(wget -qO- --timeout=15 "$url" 2>&1); else js="(this server has neither curl nor wget)"; fi; new=$(printf '%s' "$js" | sed -n 's/.*"tag_name": *"v\{0,1\}\([^"]*\)".*/\1/p' | head -1); if [ -z "$new" ]; then echo "Newest:   unknown - GitHub could not be asked from this server."; printf '%s\n' "$js" | head -3; else echo "Newest:   $new"; echo; if [ -z "$cur" ]; then echo "The running version could not be read, so the two cannot be compared."; elif [ "$cur" = "$new" ]; then echo "You are up to date."; elif [ "${cur%%.*}" != "${new%%.*}" ]; then echo "A NEW MAJOR VERSION (${new%%.*}) is out."; echo "Read its notes before updating: https://github.com/immich-app/immich/releases"; echo "After it, the phone app must be updated too, and there is no going back to $cur."; else echo "An update is available. What changed: https://github.com/immich-app/immich/releases"; fi; fi; case "$img" in *:*) tag=${img##*:};; *) tag=latest;; esac; echo; case "$tag" in release|latest) echo "Your setup follows '$tag': Update Immich takes the newest version, whatever its number.";; v[0-9]*.*) echo "Your setup is pinned to exactly $tag: Update Immich changes nothing until IMMICH_VERSION is changed in your settings.";; v[0-9]*) echo "Your setup follows major version $tag: updates stay inside it.";; esac'''
+icon_name = "cloud-download"
+color = "#99c1f1"
+show_output = true
+tooltip = "Compares the version you run with the newest one published, and warns when the jump is a big one - the kind where the phone app must follow and there is no way back."
+
+[[button]]
+id = "imm-030"
+name = "Recent errors"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "No Immich server container on this machine."; exit 1; }; proj=$(sudo docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$S"); if [ -n "$proj" ]; then C=$(sudo docker ps -a --filter "label=com.docker.compose.project=$proj" --format '{{.Names}}|{{.Image}}'); else C=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}' | grep -i immich); fi; names=$(printf '%s\n' "$C" | awk -F'|' 'tolower($2) ~ /immich-server|machine-learning/ {print $1}'); for n in $names; do raw=$(sudo docker logs --since 24h "$n" 2>&1) || { printf '%s\n' "$raw" >&2; exit 1; }; echo "=== $n - last 24 hours ==="; if [ -z "$raw" ]; then echo "It wrote nothing at all in 24 hours - it was probably just restarted. Nothing to judge, which is not the same as all is well."; echo; continue; fi; hits=$(printf '%s\n' "$raw" | grep -E ' (ERROR|WARN|WARNING|FATAL|CRITICAL) |Traceback|Killed'); if [ -z "$hits" ]; then echo "No error and no warning in $(printf '%s\n' "$raw" | wc -l) lines."; else printf '%s\n' "$hits" | LC_ALL=C awk '{ k=$0; if (match(k, /(ERROR|WARN|WARNING|FATAL|CRITICAL) /)) k=substr(k, RSTART); if (!(k in n)) o[++c]=k; n[k]++ } END { for (i=1; i<=c; i++) printf "%s%s\n", o[i], (n[o[i]] > 1 ? sprintf("   (repeated %d times)", n[o[i]]) : "") }' | tail -30; fi; echo; done; echo "Each message is shown once, with how many times it came back - one harmless warning repeated 200 times would otherwise bury the error that matters."'''
+icon_name = "exclamation-triangle"
+color = "#ffbe6f"
+show_output = true
+tooltip = "What went wrong in the last 24 hours, in the app and in the face/search part - each message once. Copy it into your AI assistant or a forum post as it is."
+
+[[button]]
+id = "imm-035"
+name = "Follow the log live"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "The Immich server container is not running."; exit 1; }; echo "Do what goes wrong now (an upload, opening an album) - Immich writes here as it happens."; echo "Leave this view when you have seen enough."; echo; sudo docker logs -f --tail 100 "$S"'''
+icon_name = "activity"
+color = "#ffbe6f"
+execution_mode = "terminal"
+tooltip = "The error button shows what already happened; this one keeps printing while you reproduce the problem, so you see it the moment it occurs."
+
+[[button]]
+id = "imm-040"
+name = "Where did the disk space go?"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "The Immich server container is not running."; exit 1; }; R=$(sudo docker exec "$S" sh -c 'for d in "$IMMICH_MEDIA_LOCATION" /data /usr/src/app/upload; do [ -n "$d" ] && [ -d "$d" ] && [ -n "$(ls -A "$d" 2>/dev/null)" ] && { echo "$d"; exit 0; }; done') || exit $?; [ -n "$R" ] || { echo "Immich's own storage folder was not found inside the container, so nothing can be measured."; exit 1; }; H=$(sudo docker inspect "$S" | tr -d '\n' | grep -oE '"Source": *"[^"]*", *"Destination": *"'"$R"'"' | sed 's/"Source": *"\([^"]*\)".*/\1/'); echo "=== Immich's own folder ==="; echo "On the server: ${H:-(not found)}"; echo "Measuring - on a big library this takes a minute..."; echo; out=$(sudo docker exec "$S" sh -c 'cd "$1" || exit 1; for f in library upload thumbs encoded-video profile backups; do [ -d "$f" ] || continue; s=$(du -sh "$f" 2>/tmp/cdk.err | cut -f1); p=""; [ -s /tmp/cdk.err ] && p=partial; printf "%s|%s|%s\n" "$f" "$s" "$p"; done; rm -f /tmp/cdk.err' sh "$R") || exit $?; [ -n "$out" ] || { echo "None of Immich's usual folders exist there - nothing to measure."; exit 1; }; printf '%s\n' "$out" | while IFS='|' read -r f s p; do case "$f" in library) d="your photos and videos, sorted by Immich";; upload) d="your photos and videos, as they arrived";; thumbs) d="small previews - Immich rebuilds them if they go";; encoded-video) d="copies of videos converted so every browser can play them";; profile) d="profile pictures";; backups) d="Immich's automatic copies of its database";; esac; [ -n "$p" ] && d="$d - SOME FILES COULD NOT BE READ, the real size is bigger"; printf '%-14s %6s   %s\n' "$f" "${s:-?}" "$d"; done; echo; echo "=== The disks behind it ==="; dests=$(sudo docker inspect "$S" | grep -oE '"Destination":[[:space:]]*"[^"]*"' | sed 's/.*"\([^"]*\)"$/\1/'); rows=$(printf '%s\n' "$R" $dests | while IFS= read -r d; do [ -n "$d" ] || continue; sudo docker exec "$S" df -h "$d" 2>/dev/null | tail -n +2; done | sort -u); [ -n "$rows" ] || { echo "The disks could not be read from inside the container."; exit 1; }; sudo docker exec "$S" df -h / | head -1; printf '%s\n' "$rows"; warn=$(printf '%s\n' "$rows" | awk '{u=$5; gsub(/%/,"",u); if (u+0 >= 90 && u+0 > m) { m=u+0; a=$4 } } END { if (m) print m"|"a }'); case "$warn" in ?*) echo; echo "WARNING: a disk Immich writes to is ${warn%%|*}% full - only ${warn##*|} left. When it fills, uploads fail and the database can be damaged. Free some space before anything else.";; esac; echo; echo "Photos in an external library are not counted above: Immich only reads them where they already are."'''
+icon_name = "hdd"
+color = "#57e389"
+show_output = true
+timeout = 600
+tooltip = "Immich keeps more than your photos: previews, converted copies of videos, database backups. This measures each one, says what it is, and warns when a disk is nearly full."
+
+[[button]]
+id = "imm-050"
+name = "Are the backups happening?"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "The Immich server container is not running."; exit 1; }; R=$(sudo docker exec "$S" sh -c 'for d in "$IMMICH_MEDIA_LOCATION" /data /usr/src/app/upload; do [ -n "$d" ] && [ -d "$d" ] && [ -n "$(ls -A "$d" 2>/dev/null)" ] && { echo "$d"; exit 0; }; done') || exit $?; [ -n "$R" ] || { echo "Immich's own storage folder was not found inside the container, so its backups cannot be looked for."; exit 1; }; H=$(sudo docker inspect "$S" | tr -d '\n' | grep -oE '"Source": *"[^"]*", *"Destination": *"'"$R"'"' | sed 's/"Source": *"\([^"]*\)".*/\1/'); list=$(sudo docker exec "$S" sh -c '[ -d "$1/backups" ] || exit 3; find "$1/backups" -maxdepth 1 -type f -name "*.sql.gz" -printf "%T@|%s|%f\n" | sort -n' sh "$R"); rc=$?; if [ $rc -eq 3 ] || { [ $rc -eq 0 ] && [ -z "$list" ]; }; then echo "NO DATABASE BACKUP AT ALL."; echo; echo "Immich can make them by itself every night: Administration > Settings > Backup Settings."; echo "Or press 'Back up the database now'."; exit 1; fi; [ $rc -eq 0 ] || exit $rc; n=$(printf '%s\n' "$list" | grep -c .); last=$(printf '%s\n' "$list" | tail -1); t=${last%%.*}; f=${last##*|}; now=$(date +%s); h=$(( (now - t) / 3600 )); tot=$(printf '%s\n' "$list" | LC_ALL=C awk -F'|' '{s+=$2} END {printf "%d", s/1048576}'); echo "Backups kept:  $n ($tot MB in all)"; echo "Newest:        $f"; if [ $h -lt 48 ]; then echo "               $h hour(s) old - backups are happening."; else echo "               $((h / 24)) days old - AUTOMATIC BACKUPS SEEM TO HAVE STOPPED."; echo "Check Administration > Settings > Backup Settings, then Recent errors."; fi; echo "Kept on the server in: ${H:-(unknown)}/backups"; echo; echo "Remember what these are: the catalogue - albums, faces, who is who, what you shared. Your photos themselves are not in them and need their own copy on another disk."'''
+icon_name = "clock-history"
+color = "#8ff0a4"
+show_output = true
+tooltip = "Immich can copy its database every night - if the setting is on and nothing broke. This finds the newest copy and says how old it is, instead of assuming."
+
+[[button]]
+id = "imm-060"
+name = "Back up the database now"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "The Immich server container is not running."; exit 1; }; proj=$(sudo docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$S"); if [ -n "$proj" ]; then C=$(sudo docker ps --filter "label=com.docker.compose.project=$proj" --format '{{.Names}}|{{.Image}}'); else C=$(sudo docker ps --format '{{.Names}}|{{.Image}}'); fi; DB=$(printf '%s\n' "$C" | awk -F'|' 'tolower($2) ~ /postgres|pgvecto|vectorchord/ {print $1; exit}'); [ -n "$DB" ] || { echo "The Immich database container is not running, so no backup can be made."; exit 1; }; R=$(sudo docker exec "$S" sh -c 'for d in "$IMMICH_MEDIA_LOCATION" /data /usr/src/app/upload; do [ -n "$d" ] && [ -d "$d" ] && [ -n "$(ls -A "$d" 2>/dev/null)" ] && { echo "$d"; exit 0; }; done') || exit $?; [ -n "$R" ] || { echo "Immich's own storage folder was not found, so there is nowhere to put the backup."; exit 1; }; H=$(sudo docker inspect "$S" | tr -d '\n' | grep -oE '"Source": *"[^"]*", *"Destination": *"'"$R"'"' | sed 's/"Source": *"\([^"]*\)".*/\1/'); U=$(sudo docker exec "$DB" printenv POSTGRES_USER); U=${U:-postgres}; name="commandeck-db-backup-$(date +%Y%m%d-%H%M%S).sql.gz"; F="$R/backups/$name"; sudo docker exec "$S" mkdir -p "$R/backups" || exit $?; echo "Copying the database - this takes a minute on a big library..."; sudo docker exec "$DB" pg_dumpall --clean --if-exists --username="$U" | gzip | sudo docker exec -i "$S" sh -c 'cat > "$1"' sh "$F"; ok=$(sudo docker exec "$S" sh -c 'gzip -dc "$1" 2>/dev/null | tail -n 5 | grep -c "dump complete"' sh "$F"); if [ "${ok:-0}" -ge 1 ]; then sz=$(sudo docker exec "$S" du -h "$F" | cut -f1); echo; echo "Done: $name ($sz)"; echo "On the server: ${H:-$R}/backups/"; echo; echo "This copy stays until you delete it: Immich's nightly clean-up only removes its own."; else sudo docker exec "$S" rm -f "$F"; echo; echo "The copy did NOT finish, so it was deleted rather than left behind as a false backup."; exit 1; fi'''
+icon_name = "box-seam"
+color = "#8ff0a4"
+show_output = true
+confirm_before_run = true
+timeout = 1800
+tooltip = "Copies Immich's database right now, next to its automatic backups, then checks the copy reached its end. Press it before any update. Your photos are not touched."
+
+[[button]]
+id = "imm-070"
+name = "Why are faces or search not working?"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "The Immich server container is not running - start that first."; exit 1; }; proj=$(sudo docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$S"); if [ -n "$proj" ]; then C=$(sudo docker ps -a --filter "label=com.docker.compose.project=$proj" --format '{{.Names}}|{{.Image}}|{{.Status}}'); else C=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}|{{.Status}}'); fi; ML=$(printf '%s\n' "$C" | awk -F'|' 'tolower($2) ~ /machine-learning/ {print $1"|"$3; exit}'); echo "=== 1. Is the faces-and-search part running? ==="; if [ -z "$ML" ]; then echo "There is no machine-learning container in this Immich. Faces and smart search cannot work without it - it was probably left out of the compose file."; exit 1; fi; M=${ML%%|*}; echo "$M: ${ML#*|}"; case "${ML#*|}" in Up*) echo "Yes.";; *) echo "No - it is stopped, and that is the reason. Try Restart Immich."; exit 1;; esac; echo; echo "=== 2. Can the app reach it? ==="; url=$(sudo docker exec "$S" printenv IMMICH_MACHINE_LEARNING_URL); url=${url:-http://immich-machine-learning:3003}; r=$(sudo docker exec "$S" node -e 'fetch(process.argv[1] + "/ping").then(r => r.text()).then(t => console.log(t)).catch(e => { console.log("FAILED: " + e.message); process.exit(1) })' "$url" 2>&1); echo "$url answered: ${r:-nothing}"; case "$r" in *pong*) echo "Yes.";; *) echo "No. The app looks for it at the address above. If the container has another name, set its address in Administration > Settings > Machine Learning.";; esac; echo; echo "=== 3. What it reported in the last 24 hours ==="; log=$(sudo docker logs --since 24h "$M" 2>&1) || { printf '%s\n' "$log" >&2; exit 1; }; if [ -z "$log" ]; then echo "Nothing at all - it has not been asked to do anything, or it was just restarted."; else printf '%s\n' "$log" | grep -E 'ERROR|WARNING|Killed|MemoryError|out of memory' | tail -15 | grep . || echo "No error and no warning."; fi; echo; echo "Faces and search are filled in by background jobs. After a big upload, Administration > Jobs shows how much is still waiting."'''
+icon_name = "cpu"
+color = "#dc8add"
+show_output = true
+timeout = 120
+tooltip = "Faces not grouped, search finds nothing? Checks the three usual reasons one by one: the part that does it is stopped, the app cannot reach it, or it keeps failing."
+
+# ── Accounts ──────────────────────────────────────────────────────────────
+[[button]]
+id = "imm-080"
+name = "List the users"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "The Immich server container is not running."; exit 1; }; out=$(sudo docker exec "$S" immich-admin list-users 2>&1); rc=$?; [ -n "$out" ] || { echo "Immich's own tool answered nothing, so the list is unknown."; exit 1; }; printf '%s\n' "$out"; exit $rc'''
+icon_name = "people"
+color = "#62a0ea"
+show_output = true
+tooltip = "Every account on this Immich, with its e-mail and whether it is an administrator - asked to Immich's own admin tool."
+
+[[button]]
+id = "imm-090"
+name = "Reset the admin password"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "The Immich server container is not running."; exit 1; }; echo "Immich now makes up a new password for the administrator account."; echo; out=$(printf '\n' | sudo docker exec -i "$S" immich-admin reset-admin-password 2>&1); rc=$?; printf '%s\n' "$out"; [ $rc -eq 0 ] || exit $rc; echo; echo "Log in with it, then choose your own in Account Settings. Anyone who can see this window can read it - close it once you are in."'''
+icon_name = "person-check"
+color = "#f66151"
+show_output = true
+confirm_before_run = true
+tooltip = "Locked out of the administrator account? Immich's own tool gives it a new password and prints it here. The photos and the other accounts are not touched."
+
+# ── Acting (rare, and in this order) ──────────────────────────────────────
+[[button]]
+id = "imm-100"
+name = "Restart Immich"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "No Immich server container on this machine."; exit 1; }; proj=$(sudo docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$S"); if [ -n "$proj" ]; then n=$(sudo docker ps -a --filter "label=com.docker.compose.project=$proj" --format '{{.Names}}'); else n="$S"; fi; [ -n "$n" ] || exit 1; echo "Restarting: $(echo $n)"; sudo docker restart $n >/dev/null || exit $?; echo "Waiting for it to be ready (up to one minute)..."; i=0; while [ $i -lt 12 ]; do sleep 5; i=$((i + 1)); st=$(sudo docker inspect -f '{{json .State.Health}}' "$S" 2>/dev/null); case "$st" in *'"Status":"starting"'*) : ;; *) break;; esac; done; echo; sudo docker ps -a --format '{{.Names}}: {{.Status}}' | grep -E "^($(echo $n | tr ' ' '|')):" ; bad=$(sudo docker ps -a --format '{{.Names}}|{{.Status}}' | grep -E "^($(echo $n | tr ' ' '|'))\|" | grep -v '|Up'); [ -z "$bad" ] || { echo; echo "Something did not come back up - look at Recent errors."; exit 1; }'''
+icon_name = "arrow-clockwise"
+color = "#f8e45c"
+show_output = true
+confirm_before_run = true
+timeout = 300
+tooltip = "First move when Immich is stuck. Restarts all of its parts together, waits until the app says it is ready, and reports each part's status."
+
+[[button]]
+id = "imm-110"
+name = "Update Immich"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps -a --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "No Immich server container on this machine."; exit 1; }; R=$(sudo docker exec "$S" sh -c 'for d in "$IMMICH_MEDIA_LOCATION" /data /usr/src/app/upload; do [ -n "$d" ] && [ -d "$d" ] && [ -n "$(ls -A "$d" 2>/dev/null)" ] && { echo "$d"; exit 0; }; done' 2>/dev/null); fresh=""; [ -n "$R" ] && fresh=$(sudo docker exec "$S" sh -c 'find "$1/backups" -maxdepth 1 -type f -name "*.sql.gz" -mmin -1440 2>/dev/null | head -1' sh "$R"); if [ -z "$fresh" ]; then echo "STOPPED BEFORE UPDATING: there is no copy of the database from the last 24 hours."; echo "An update cannot be undone. Press 'Back up the database now', then press this button again."; exit 1; fi; echo "Database copy from the last 24 hours: ${fresh##*/} - good."; echo; proj=$(sudo docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$S"); dir=$(sudo docker inspect -f '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' "$S" 2>/dev/null); cf=""; for x in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do [ -n "$dir" ] && sudo test -f "$dir/$x" && { cf="$x"; break; }; done; if [ -z "$cf" ]; then echo "The compose file for Immich is not reachable from the server."; echo "Update it from Portainer: Stacks > your Immich stack > Update the stack, with 'Re-pull image' turned on."; echo "(A Portainer stack keeps its compose file inside Portainer's own volume, so the server cannot open it.)"; exit 0; fi; echo "Compose folder: $dir"; cd "$dir" && sudo docker compose pull && sudo docker compose up -d || exit $?; echo; echo "Waiting for it to be ready (up to two minutes)..."; i=0; while [ $i -lt 24 ]; do sleep 5; i=$((i + 1)); st=$(sudo docker inspect -f '{{json .State.Health}}' "$S" 2>/dev/null); case "$st" in *'"Status":"starting"'*) : ;; *) break;; esac; done; sudo docker ps -a --filter "label=com.docker.compose.project=$proj" --format '{{.Names}}: {{.Status}}'; echo; echo "The first start after an update can spend a few minutes updating the database. Update the phone app too."'''
+icon_name = "cloud-download"
+color = "#62a0ea"
+show_output = true
+confirm_before_run = true
+timeout = 1800
+tooltip = "Refuses to start without a database copy from the last 24 hours, because an update cannot be undone. Then finds your compose folder by itself, pulls the new version and waits until it is ready."
+
+[[button]]
+id = "imm-120"
+name = "Is the database consistent?"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "The Immich server container is not running."; exit 1; }; out=$(sudo docker exec "$S" immich-admin schema-check 2>&1); rc=$?; case "$out" in *"unknown command"*|*"Unknown command"*) echo "This Immich is older than its own database check, so it cannot be run here. Update Immich first."; exit 1;; esac; [ -n "$out" ] || { echo "The check answered nothing at all - treat that as unknown, not as good news."; exit 1; }; printf '%s\n' "$out"; exit $rc'''
+icon_name = "server"
+color = "#ffbe6f"
+show_output = true
+timeout = 300
+tooltip = "Asks Immich's own tool whether its database has every change an update was supposed to make. Useful after an update that went wrong. Changes nothing."
+
+[[button]]
+id = "imm-130"
+name = "Resources right now"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "The Immich server container is not running."; exit 1; }; proj=$(sudo docker inspect -f '{{index .Config.Labels "com.docker.compose.project"}}' "$S"); if [ -n "$proj" ]; then n=$(sudo docker ps --filter "label=com.docker.compose.project=$proj" --format '{{.Names}}'); else n="$S"; fi; sudo docker stats --no-stream $n'''
+icon_name = "memory"
+color = "#8ff0a4"
+show_output = true
+tooltip = "One snapshot of the processor and memory each part of Immich is using. Face recognition after a big upload is the usual reason the server is busy."
+
+[[button]]
+id = "imm-140"
+name = "Shell inside the container"
+command = '''sudo docker ps >/dev/null || exit $?; S=$(sudo docker ps --format '{{.Names}}|{{.Image}}' | awk -F'|' 'tolower($2) ~ /immich-server/ {print $1; exit}'); [ -n "$S" ] || { echo "The Immich server container is not running."; exit 1; }; echo "You are about to get a shell INSIDE the $S container."; echo "Immich's admin tool works from here: immich-admin help"; echo "Type exit to leave. Changes outside the photo folder are lost on the next update."; echo; sudo docker exec -it "$S" bash 2>/dev/null || sudo docker exec -it "$S" sh'''
+icon_name = "terminal"
+color = "#ffa348"
+execution_mode = "terminal"
+confirm_before_run = true
+tooltip = "For the moment when an answer online says \"run this inside the container\". Opens a shell in the Immich app container itself, not on the server. You type into it, so it needs a computer."
