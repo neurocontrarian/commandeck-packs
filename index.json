@@ -281,6 +281,42 @@
       "path": "windows/network/pack.toml",
       "sig": "windows/network/pack.sig",
       "signed": true
+    },
+    {
+      "pack_id": "immich-docker",
+      "name": "Immich (Docker)",
+      "description": "The questions you would otherwise SSH in for: is every part running, where did the disk space go, are the database backups really happening - plus a backup on demand, a safe update, the user list and a new admin password. For Immich running with Docker (compose or Portainer).",
+      "os": "linux",
+      "tags": [
+        "immich",
+        "photos",
+        "docker",
+        "selfhosted",
+        "backup",
+        "diagnostics"
+      ],
+      "pack_ver": "0.9.0",
+      "path": "linux/immich-docker/pack.toml",
+      "sig": "linux/immich-docker/pack.sig",
+      "signed": true
+    },
+    {
+      "pack_id": "home-assistant-docker",
+      "name": "Home Assistant (Docker)",
+      "description": "The questions you would otherwise SSH in for: is it running, is my configuration valid, what failed to start, is my Zigbee stick seen, are backups happening - plus a restart that checks the configuration first and an update that wants a fresh backup. For Home Assistant running in a Docker container.",
+      "os": "linux",
+      "tags": [
+        "home-assistant",
+        "smart-home",
+        "docker",
+        "selfhosted",
+        "backup",
+        "diagnostics"
+      ],
+      "pack_ver": "0.9.0",
+      "path": "linux/home-assistant-docker/pack.toml",
+      "sig": "linux/home-assistant-docker/pack.sig",
+      "signed": true
     }
   ]
 }
