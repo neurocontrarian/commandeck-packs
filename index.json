@@ -295,7 +295,7 @@
         "backup",
         "diagnostics"
       ],
-      "pack_ver": "0.9.2",
+      "pack_ver": "0.9.3",
       "path": "linux/immich-docker/pack.toml",
       "sig": "linux/immich-docker/pack.sig",
       "signed": true
@@ -313,7 +313,7 @@
         "backup",
         "diagnostics"
       ],
-      "pack_ver": "0.9.0",
+      "pack_ver": "0.9.1",
       "path": "linux/home-assistant-docker/pack.toml",
       "sig": "linux/home-assistant-docker/pack.sig",
       "signed": true
