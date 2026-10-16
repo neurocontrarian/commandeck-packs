@@ -295,7 +295,7 @@
         "backup",
         "diagnostics"
       ],
-      "pack_ver": "0.9.3",
+      "pack_ver": "0.9.4",
       "path": "linux/immich-docker/pack.toml",
       "sig": "linux/immich-docker/pack.sig",
       "signed": true
