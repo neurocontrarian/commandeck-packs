@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "immich-docker"
 name = "Immich (Docker)"
-pack_ver = "0.9.5"
+pack_ver = "1.0.0"
 os = "linux"
 category = "Immich"
 description = "The questions you would otherwise SSH in for: is every part running, where did the disk space go, are the database backups really happening - plus a safe update and the user list. For Immich running with Docker (compose or Portainer)."

@@ -3,7 +3,7 @@ version = 1
 [pack]
 pack_id = "home-assistant-docker"
 name = "Home Assistant (Docker)"
-pack_ver = "0.9.1"
+pack_ver = "1.0.0"
 os = "linux"
 category = "Home Assistant"
 description = "The questions you would otherwise SSH in for: is it running, is my configuration valid, what failed to start, is my Zigbee stick seen, are backups happening - plus a restart that checks the configuration first and an update that wants a fresh backup. For Home Assistant running in a Docker container."
